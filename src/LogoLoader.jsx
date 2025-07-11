@@ -1,6 +1,6 @@
 import React from 'react'
 import useLoadingStore from './store/loading-store'
-import primusLogo from '/LogoPrimus.png'
+import primusLogo from './LogoPrimusupd.png'
 
 export default function LogoLoader() {
     const loading = useLoadingStore((state) => state.loading);
