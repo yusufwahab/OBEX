@@ -41,16 +41,25 @@ const cameraElement = CameraStreams.map(cam => (
 ))
 
 
-
-
   function addCameraStream () {
-    if (CameraStreams.length < allcameras.length) {
-    showLoading()
-    setTimeout(() => {
-      addToCameraStreams(allcameras[CameraStreams.length]);
-      hideLoading();
-    }, 2000);
-  }
+    const nextCamera = allcameras.find(
+      (cam) => !CameraStreams.some((c) => c.id === cam.id)
+    );
+  
+    if (nextCamera) {
+      showLoading();
+      setTimeout(() => {
+        addToCameraStreams(nextCamera);
+        hideLoading();
+      }, 2000);
+    }
+  // `  if (CameraStreams.length < allcameras.length) {
+  //   showLoading()
+  //   setTimeout(() => {
+  //     addToCameraStreams(allcameras[CameraStreams.length]);
+  //     hideLoading();
+  //   }, 2000);
+  // }`
   }
 
   function handleClicks () {
@@ -65,16 +74,23 @@ const cameraElement = CameraStreams.map(cam => (
     <LogoLoader />
     {showMain && <main className="mt-10 bg-gray-800 w-[90vw] h-auto   m-auto rounded-lg shadow shadow-cyan-400/50 mb-10 pb-10 pt-5 xl:w-[95vw]">
 <article className="flex justify-between items-center m-5">
-    <figure className="flex text-3xl items-center gap-2 ml-12">
-    <svg className="h-8 w-8 md:h-8 md:w-8 lg:h-10 lg:w-10 text-cyan-400 "
+    <figure className=" flex text-3xl items-center gap-2 xl:ml-10 lg:ml-8 md:ml-6 ml-8">
+    <svg className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-cyan-400 "
                     fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round"
                         d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
                 </svg>
-      <h1 className="text-xl md:text-2xl lg:text-3xl font-bold  text-gray-100">Live Feed</h1>
+      <h1 className="text-[16px] md:text-2xl lg:text-3xl font-bold  text-gray-100">Live Feed</h1>
       </figure>
+
+      <figure className="flex items-center gap-2 xl:gap-5 md:gap-5">
+        <button className="relative cursor-pointer  text-gray-100 md:hidden group"><i className="fa fa-search rounded-full"></i><span className="hidden group-hover:block absolute bottom-10 text-[14px]">Search for camera</span></button>
+        <input type="text"  className="cursor-pointer hidden md:block xl:w-100 md:h-8 md:p-3 xl:h-10 bg-gray-900 outline-2 outline-cyan-400 rounded-full text-gray-100 xl:p-5" placeholder="Search Camera"/>
+        <button className="cursor-pointer outline-2 outline-cyan-400 w-40 h-10 rounded-lg text-gray-100 bg-gray-900 hidden md:block md:w-35 md:h-8 md:text-[14px]"><i className="fa-solid fa-trash"></i> clear all camera</button>
+        <button className="relative group cursor-pointer text-gray-100  md:hidden xl:hidden w-8 h-8 p-2 bg-gray-900 text-[12px] rounded-full"><i className="fa-solid fa-trash"></i><span className="hidden group-hover:block absolute bottom-10">clear all cameras</span></button>
       {/* Disable "+" When All Cameras Are Added */}
       {CameraStreams.length < allcameras.length && <button onClick={handleClicks} className="cursor-pointer text-sm  text-gray-100 px-3 py-2 rounded-lg animate-bounce outline-2 outline-cyan-400 mr-10 lg:mr-20" ><i className="fa fa-plus" aria-hidden="true"></i></button>}
+      </figure>
     </article>
 
 
@@ -104,3 +120,6 @@ const cameraElement = CameraStreams.map(cam => (
     </>
   );
 }
+
+
+
