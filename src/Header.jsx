@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import primusLogo from './logo-primus.png';
 import { useNavStore } from "./store/navigation-store";
 
@@ -6,8 +7,9 @@ export default function Header({ addCameraStream }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDashboardOpen, setIsDashboarddownOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const location = useLocation();
 
-  const {active, setActive} = useNavStore();
+  const isActive = (path) => location.pathname === path;
 
   function handleDropdownDashboard() {
     setIsDashboarddownOpen(!isDashboardOpen);
@@ -22,7 +24,7 @@ export default function Header({ addCameraStream }) {
       <nav className="mx-4 sm:mx-6 lg:mx-10">
         <section className="flex items-center justify-between h-16 xl:h-20">
           {/* Logo */}
-          <a className="flex items-center">
+          <Link to="/dashboard" className="flex items-center">
             <img
               src={primusLogo}
               alt="primus logo"
@@ -32,9 +34,9 @@ export default function Header({ addCameraStream }) {
               Primus
               <span className="text-cyan-400 font-medium font-black">Lite</span>
             </span>
-          </a>
+          </Link>
 
-          {/* NOTIFICATION AND ALERT ICON FOR MOBILE */}
+          {/* Mobile Notification Icon */}
           <div className="md:hidden flex items-center rounded-full w-10 h-10 p-1 outline-cyan-400 outline-2">
             <button className="relative group inline-block text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium cursor-pointer focus:bg-gray-700 active:bg-gray-700">
               <span><i className="fa-regular fa-bell text-yellow-400 text-[20px] md:text-[16px]"></i></span>
@@ -79,15 +81,17 @@ export default function Header({ addCameraStream }) {
 
           {/* Nav Links (Desktop) */}
           <article className="hidden md:flex space-x-1 items-center">
-            <a 
-              key="dashboard" 
-              onClick={() => {handleDropdownDashboard(); setActive('dashboard')}} 
-              className={`text-white md:px-2 md:py-1 px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] xl:text-[16px] relative lg:text-[12px] ${active === 'dashboard'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
-            >
-              <article className="flex items-center gap-2 group">
-                <i className="fa-solid fa-table-columns group-hover:text-cyan-400"></i>
-                <span className="group-hover:text-white">Dashboard</span>
-                <span>
+            <div className="relative">
+              <Link
+                to="/dashboard"
+                onClick={handleDropdownDashboard}
+                className={`text-white md:px-2 md:py-1 px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] xl:text-[16px] lg:text-[12px] ${
+                  isActive('/dashboard') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+                }`}
+              >
+                <article className="flex items-center gap-2 group">
+                  <i className="fa-solid fa-table-columns group-hover:text-cyan-400"></i>
+                  <span className="group-hover:text-white">Dashboard</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -100,8 +104,8 @@ export default function Header({ addCameraStream }) {
                   >
                     <path d="M6 9l6 6 6-6" />
                   </svg>
-                </span>
-              </article>
+                </article>
+              </Link>
               {isDashboardOpen && (
                 <article className="w-[200px] h-[150px] bg-gray-900 rounded-md absolute flex justify-around flex-col p-5 mt-10 transition-all duration-300 ease-out">
                   <h3 className="group flex items-center gap-2">
@@ -118,35 +122,39 @@ export default function Header({ addCameraStream }) {
                   </h3>
                 </article>
               )}
-            </a>
-              
-            <a 
-              key="zones" 
-              onClick={() => setActive('zones')} 
-              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] ${active === 'zones'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
-            >
-              <span className="group-hover:text-cyan-400"><i className="fa-solid fa-money-bill-trend-up"></i></span> 
-              <span className="group-hover:text-white">Zone Management</span>
-            </a>
-              
-            <a 
-              key="history" 
-              onClick={() => setActive('history')} 
-              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] ${active === 'history'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
-            >
-              <span className="group-hover:text-cyan-400"><i className="fa-solid fa-clock-rotate-left"></i></span> 
-              <span className="group-hover:text-white">History</span>
-            </a>
+            </div>
 
-            <a 
-              key="settings" 
-              onClick={() => {setActive('settings'); handledropdownSettings()}} 
-              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] lg:text-[12px] xl:text-[16px] ${active === 'settings'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
+            <Link
+              to="/zones"
+              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] ${
+                isActive('/zones') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+              }`}
             >
-              <article className="flex items-center gap-2 group">
-                <i className="fas fa-gear group-hover:text-cyan-400"></i> 
-                <span className="group-hover:text-white">Settings</span>
-                <span>
+              <span className="group-hover:text-cyan-400"><i className="fa-solid fa-money-bill-trend-up"></i></span>
+              <span className="group-hover:text-white">Zone Management</span>
+            </Link>
+
+            <Link
+              to="/history"
+              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] ${
+                isActive('/history') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+              }`}
+            >
+              <span className="group-hover:text-cyan-400"><i className="fa-solid fa-clock-rotate-left"></i></span>
+              <span className="group-hover:text-white">History</span>
+            </Link>
+
+            <div className="relative">
+              <Link
+                to="/settings"
+                onClick={handledropdownSettings}
+                className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] lg:text-[12px] xl:text-[16px] ${
+                  isActive('/settings') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+                }`}
+              >
+                <article className="flex items-center gap-2 group">
+                  <i className="fas fa-gear group-hover:text-cyan-400"></i>
+                  <span className="group-hover:text-white">Settings</span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -159,8 +167,8 @@ export default function Header({ addCameraStream }) {
                   >
                     <path d="M6 9l6 6 6-6" />
                   </svg>
-                </span>
-              </article>
+                </article>
+              </Link>
               {isSettingsOpen && (
                 <article className="w-[220px] h-[150px] bg-gray-900 rounded-md absolute flex justify-around flex-col p-5 mt-10 transition-all duration-300 ease-out">
                   <h3 className="group flex items-center gap-2">
@@ -173,124 +181,135 @@ export default function Header({ addCameraStream }) {
                   </h3>
                 </article>
               )}
-            </a>
+            </div>
           </article>
 
           <div className="hidden md:flex space-x-1 items-center lg:gap-1">
-            <a 
-              onClick={() => setActive('profile')}
-              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 bg-gray-900 lg:text-[12px] xl:text-[16px] ${active === 'profile'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
+            <Link
+              to="/profile"
+              className={`text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 bg-gray-900 lg:text-[12px] xl:text-[16px] ${
+                isActive('/profile') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+              }`}
             >
-              <span><i className="fa-regular fa-user text-cyan-400"></i></span> 
+              <span><i className="fa-regular fa-user text-cyan-400"></i></span>
               <span className="hidden lg:inline">Profile</span>
-            </a>
-            <a 
-              onClick={() => setActive('notification')}
-              className={`text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 bg-gray-900 lg:text-[12px] xl:text-[16px] ${active === 'notification'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
-            >
-              <span><i className="fa-regular fa-envelope text-cyan-400"></i></span> 
-              <span className="hidden lg:inline">Notification</span>
-            </a>
+            </Link>
 
-            <a 
-              onClick={() => setActive('alert')}
-              className={`relative group inline-block text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium hover:outline-1 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 ${active === 'alert'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
+            <Link
+              to="/notification"
+              className={`text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 bg-gray-900 lg:text-[12px] xl:text-[16px] ${
+                isActive('/notification') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+              }`}
+            >
+              <span><i className="fa-regular fa-envelope text-cyan-400"></i></span>
+              <span className="hidden lg:inline">Notification</span>
+            </Link>
+
+            <Link
+              to="/alert"
+              className={`relative group inline-block text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium hover:outline-1 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 ${
+                isActive('/alert') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+              }`}
             >
               <span><i className="fa-regular fa-bell text-yellow-400 text-[20px] md:text-[16px]"></i></span>
               <div className="absolute top-full left 1/2 -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white whitespace-nowrap z-10">
                 <span>Intrusion Alert</span>
               </div>
-            </a>
+            </Link>
 
-            <a 
-              onClick={() => setActive('logout')} 
-              className={`text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 bg-cyan-700 md:text-[10px] xl:text-[16px] ${active === 'logout'? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'}`}
+            <Link
+              to="/logout"
+              className={`text-white md:px-2 md:py-1 lg:px-3 lg:py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 bg-cyan-700 md:text-[10px] xl:text-[16px] ${
+                isActive('/logout') ? 'bg-gray-700 outline-2 outline-cyan-400' : 'hover:outline-2 hover:outline-cyan-400'
+              }`}
             >
               Logout
-            </a>
+            </Link>
           </div>
         </section>
 
-        {/* Nav Links (Mobile dropdown) */}
+        {/* Mobile Navigation */}
         {menuOpen && (
           <div>
             <div className="flex flex-col md:hidden mt-2 space-y-1 pb-4">
-              <a 
-                className="text-white md:px-2 md:py-1 px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] xl:text-[16px] relative lg:text-[12px]" 
-                onClick={handleDropdownDashboard}
-              >
-                <article className="flex items-center gap-2 group">
-                  <i className="fa-solid fa-table-columns group-hover:text-cyan-400"></i>
-                  <span className="group-hover:text-white">Dashboard</span>
-                  <i className="fa-solid fa-caret-down"></i>
-                </article>
+              <div className="relative">
+                <button
+                  onClick={handleDropdownDashboard}
+                  className="text-white md:px-2 md:py-1 px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] xl:text-[16px] lg:text-[12px] w-full text-left"
+                >
+                  <article className="flex items-center gap-2 group">
+                    <i className="fa-solid fa-table-columns group-hover:text-cyan-400"></i>
+                    <span className="group-hover:text-white">Dashboard</span>
+                    <i className="fa-solid fa-caret-down"></i>
+                  </article>
+                </button>
                 {isDashboardOpen && (
-                  <article className="w-[200px] h-[150px] bg-gray-900 rounded-md absolute flex justify-around flex-col p-5 mt-10 transition-all duration-300 ease-out">
-                    <h3 className="group flex items-center gap-2">
-                      <span><i className="fa-solid fa-camera group-hover:text-cyan-400"></i></span>
-                      <span className="text-gray-400 group-hover:text-[#FFFFFF]"> Security Cameras</span>
-                    </h3>
-                    <h3 className="group flex items-center gap-2">
-                      <span><i className="fa-solid fa-video group-hover:text-cyan-400"></i></span>
-                      <span className="text-gray-400 group-hover:text-[#FFFFFF]">Heatmap/Analytics</span>
-                    </h3>
-                    <h3 className="group flex items-center gap-2">
-                      <span><i className="fa-solid fa-chart-line group-hover:text-cyan-400"></i></span>
-                      <span className="text-gray-400 group-hover:text-[#FFFFFF]"> Active Alerts</span>
-                    </h3>
-                  </article>
+                  <div className="ml-4 mt-2 space-y-2">
+                    <Link to="/dashboard/cameras" className="block px-3 py-2 text-gray-400 hover:text-white">
+                      <i className="fa-solid fa-camera mr-2"></i>Security Cameras
+                    </Link>
+                    <Link to="/dashboard/analytics" className="block px-3 py-2 text-gray-400 hover:text-white">
+                      <i className="fa-solid fa-video mr-2"></i>Heatmap/Analytics
+                    </Link>
+                    <Link to="/dashboard/alerts" className="block px-3 py-2 text-gray-400 hover:text-white">
+                      <i className="fa-solid fa-chart-line mr-2"></i>Active Alerts
+                    </Link>
+                  </div>
                 )}
-              </a>
-              
-              <a 
+              </div>
+
+              <Link
+                to="/zones"
                 className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px]"
-                onClick={() => setActive('zones')}
               >
-                <span className="group-hover:text-cyan-400"><i className="fa-solid fa-money-bill-trend-up"></i></span> 
+                <span className="group-hover:text-cyan-400"><i className="fa-solid fa-money-bill-trend-up"></i></span>
                 <span className="group-hover:text-white">Zone Management</span>
-              </a>
-              
-              <a 
+              </Link>
+
+              <Link
+                to="/history"
                 className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px]"
-                onClick={() => setActive('history')}
               >
-                <span className="group-hover:text-cyan-400"><i className="fa-solid fa-clock-rotate-left"></i></span> 
+                <span className="group-hover:text-cyan-400"><i className="fa-solid fa-clock-rotate-left"></i></span>
                 <span className="group-hover:text-white">History</span>
-              </a>
-              
-              <a 
-                className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] lg:text-[12px] xl:text-[16px]"
-                onClick={handledropdownSettings}
-              >
-                <article className="flex items-center gap-2 group">
-                  <i className="fas fa-gear group-hover:text-cyan-400"></i> 
-                  <span className="group-hover:text-white">Settings</span>
-                  <span><i className="fa-solid fa-caret-down"></i></span>
-                </article>
-                {isSettingsOpen && (
-                  <article className="w-[220px] h-[150px] bg-gray-900 rounded-md absolute flex justify-around flex-col p-5 mt-10 transition-all duration-300 ease-out">
-                    <h3 className="group flex items-center gap-2">
-                      <span><i className="fa-solid fa-camera group-hover:text-cyan-400"></i></span>
-                      <span className="text-gray-400 group-hover:text-[#FFFFFF]"> System settings</span>
-                    </h3>
-                    <h3 className="group flex items-center gap-2">
-                      <span><i className="fa-solid fa-video group-hover:text-cyan-400"></i></span>
-                      <span className="text-gray-400 group-hover:text-[#FFFFFF]"> Device Management</span>
-                    </h3>
+              </Link>
+
+              <div className="relative">
+                <button
+                  onClick={handledropdownSettings}
+                  className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 md:text-[10px] lg:text-[12px] xl:text-[16px] w-full text-left"
+                >
+                  <article className="flex items-center gap-2 group">
+                    <i className="fas fa-gear group-hover:text-cyan-400"></i>
+                    <span className="group-hover:text-white">Settings</span>
+                    <i className="fa-solid fa-caret-down"></i>
                   </article>
+                </button>
+                {isSettingsOpen && (
+                  <div className="ml-4 mt-2 space-y-2">
+                    <Link to="/settings/system" className="block px-3 py-2 text-gray-400 hover:text-white">
+                      <i className="fa-solid fa-camera mr-2"></i>System settings
+                    </Link>
+                    <Link to="/settings/devices" className="block px-3 py-2 text-gray-400 hover:text-white">
+                      <i className="fa-solid fa-video mr-2"></i>Device Management
+                    </Link>
+                  </div>
                 )}
-              </a>
-              
-              <a 
-                className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] bg-cyan-700 w-40 mt-5"
-                onClick={() => setActive('profile')}
+              </div>
+
+              <Link
+                to="/profile"
+                className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] bg-cyan-700"
               >
                 <span className="group-hover:text-white">Profile</span>
-              </a>
-              
-              <a className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] bg-cyan-700 w-40 mt-5"> 
+              </Link>
+
+              <Link
+                to="/logout"
+                className="text-white px-3 py-2 rounded-md text-sm font-medium hover:outline-2 hover:outline-cyan-400 cursor-pointer focus:bg-gray-700 active:bg-gray-700 xl:text-[16px] flex items-center gap-2 group md:text-[10px] xl:text-[16px] lg:text-[12px] bg-cyan-700"
+              >
                 <span className="group-hover:text-white">Logout</span>
-              </a>
+              </Link>
             </div>
           </div>
         )}
