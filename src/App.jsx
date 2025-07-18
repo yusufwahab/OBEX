@@ -7,10 +7,12 @@ import Dashboard from './Dashboard';
 import Settings from './pages/Settings';
 import History from './pages/History';
 import Profile from './pages/Profile';
+import Header from './components/Header';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Header />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Signup />} />
