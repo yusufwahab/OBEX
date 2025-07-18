@@ -18,7 +18,7 @@ const LandingPage = () => {
           <source src="/background.mp4" type="video/mp4" />
           <img
             src="/fallback-image.jpg"
-            alt="PrimusLite surveillance background"
+            alt="OBEX surveillance background"
             className="w-full h-full object-cover"
           />
         </video>
@@ -31,7 +31,7 @@ const LandingPage = () => {
             The Zero Crime Mission
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-50 mb-10 leading-relaxed max-w-2xl mx-auto font-medium">
-            Stay one step ahead of danger. PrimusLite delivers real-time alerts, smart surveillance, and crystal-clear monitoring—all in one powerful, easy-to-use platform. From your front door to your business, we keep your world protected. Effortlessly.
+            Stay one step ahead of danger. OBEX delivers real-time alerts, smart surveillance, and crystal-clear monitoring—all in one powerful, easy-to-use platform. From your front door to your business, we keep your world protected. Effortlessly.
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
             <button
@@ -50,7 +50,7 @@ const LandingPage = () => {
 
         {/* Footer */}
         <footer className="absolute bottom-4 left-0 right-0 text-center text-gray-100 text-sm z-10 font-light">
-          © {new Date().getFullYear()} PrimusLite. All rights reserved.
+          © {new Date().getFullYear()} OBEX. All rights reserved.
         </footer>
       </div>
     </div>
