@@ -3,7 +3,10 @@ import Landing from './pages/Landing';
 import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
 import Login from './pages/Login';
-import Dashboard from './Dashboard'; // ✅ Import Dashboard (adjust path if needed)
+import Dashboard from './Dashboard';
+import Settings from './pages/Settings';
+import History from './pages/History';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
@@ -13,7 +16,10 @@ export default function App() {
         <Route path="/auth" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/dashboard" element={<Dashboard />} /> {/* ✅ Dashboard Route */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );
