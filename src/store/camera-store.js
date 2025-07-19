@@ -15,7 +15,7 @@ export const useCameraStore = create(
             (item) => item.id !== idToDelete
           ),
         })),
-      clearCameraStream: () => set({ CameraStreams: [] }),
+      clearCameraStreams: () => set({ CameraStreams: [] }),
     }),
     {
       name: "camera-storage", // 🔐 Key used in localStorage
