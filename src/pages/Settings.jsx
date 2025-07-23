@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavStore } from '../store/navigation-store';
+import { FaEnvelope, FaSms, FaWhatsapp, FaCogs } from 'react-icons/fa';
 
 const Settings = () => {
   const { setActive } = useNavStore();
@@ -32,91 +33,94 @@ const Settings = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
+          Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify(notificationSettings),
       });
       if (!response.ok) throw new Error('Failed to save settings');
-      alert('Settings saved successfully');
+      alert('✅ Settings saved successfully');
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings');
+      alert('❌ Failed to save settings');
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8 flex justify-center items-start">
-      <div className="w-full max-w-lg bg-gray-800/80 rounded-xl shadow-lg p-6 sm:p-8 border border-gray-700/50 backdrop-blur-sm">
-        <h1 className="text-2xl sm:text-3xl font-bold text-cyan-200 mb-6">Settings</h1>
-        <section className="space-y-6">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-100 mb-4">Notification Preferences</h2>
-          <div className="space-y-5">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={notificationSettings.email}
-                  onChange={(e) => setNotificationSettings({ ...notificationSettings, email: e.target.checked })}
-                  className="peer h-5 w-5 appearance-none border-2 border-gray-600 rounded-md bg-gray-700 checked:bg-cyan-500 checked:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-200"
-                  aria-label="Enable email notifications"
-                />
-                <span className="absolute left-1 top-1 hidden peer-checked:block text-white">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              </div>
-              <span className="text-gray-300 group-hover:text-white transition-colors duration-200">
-                Email Notifications
-              </span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={notificationSettings.sms}
-                  onChange={(e) => setNotificationSettings({ ...notificationSettings, sms: e.target.checked })}
-                  className="peer h-5 w-5 appearance-none border-2 border-gray-600 rounded-md bg-gray-700 checked:bg-cyan-500 checked:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-200"
-                  aria-label="Enable SMS notifications"
-                />
-                <span className="absolute left-1 top-1 hidden peer-checked:block text-white">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              </div>
-              <span className="text-gray-300 group-hover:text-white transition-colors duration-200">
-                SMS Notifications
-              </span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  checked={notificationSettings.whatsapp}
-                  onChange={(e) => setNotificationSettings({ ...notificationSettings, whatsapp: e.target.checked })}
-                  className="peer h-5 w-5 appearance-none border-2 border-gray-600 rounded-md bg-gray-700 checked:bg-cyan-500 checked:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-200"
-                  aria-label="Enable WhatsApp notifications"
-                />
-                <span className="absolute left-1 top-1 hidden peer-checked:block text-white">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              </div>
-              <span className="text-gray-300 group-hover:text-white transition-colors duration-200">
-                WhatsApp Notifications
-              </span>
-            </label>
+  const Toggle = ({ label, icon: Icon, checked, onChange, description }) => (
+    <div className="flex items-start gap-4 p-4 bg-gray-800/70 border border-gray-700 rounded-xl">
+      <Icon className="text-cyan-400 mt-1" size={22} />
+      <div className="flex flex-col">
+        <label className="text-white font-semibold mb-1">{label}</label>
+        <span className="text-gray-400 text-sm mb-2">{description}</span>
+        <label className="inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={onChange}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-600 peer-focus:ring-2 peer-focus:ring-cyan-500 rounded-full peer peer-checked:bg-cyan-500 transition-all duration-300 relative">
+            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transform peer-checked:translate-x-5 transition" />
           </div>
-          <button
-            onClick={handleSave}
-            className="mt-6 w-full sm:w-auto px-6 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 text-white font-semibold rounded-md hover:from-cyan-600 hover:to-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transform hover:scale-105 transition-all duration-200"
-            aria-label="Save notification settings"
-          >
-            Save Settings
-          </button>
-        </section>
+          <span className="ml-3 text-sm text-gray-300 peer-hover:text-white">
+            {checked ? 'Enabled' : 'Disabled'}
+          </span>
+        </label>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#1A2332] text-white p-6 sm:p-10">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center mb-8">
+          <FaCogs className="text-cyan-400 mr-3" size={26} />
+          <h1 className="text-3xl font-bold">Settings</h1>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-gray-900/60 rounded-xl p-6 border border-gray-700/60 shadow-lg">
+            <h2 className="text-xl font-semibold text-cyan-300 mb-4 flex items-center gap-2">
+              <FaEnvelope /> Notification Preferences
+            </h2>
+            <div className="space-y-4">
+              <Toggle
+                label="Email Notifications"
+                icon={FaEnvelope}
+                checked={notificationSettings.email}
+                onChange={(e) =>
+                  setNotificationSettings({ ...notificationSettings, email: e.target.checked })
+                }
+                description="Receive alerts via your registered email address."
+              />
+              <Toggle
+                label="SMS Notifications"
+                icon={FaSms}
+                checked={notificationSettings.sms}
+                onChange={(e) =>
+                  setNotificationSettings({ ...notificationSettings, sms: e.target.checked })
+                }
+                description="Get quick alerts through text messages."
+              />
+              <Toggle
+                label="WhatsApp Notifications"
+                icon={FaWhatsapp}
+                checked={notificationSettings.whatsapp}
+                onChange={(e) =>
+                  setNotificationSettings({ ...notificationSettings, whatsapp: e.target.checked })
+                }
+                description="Receive real-time alerts on WhatsApp."
+              />
+            </div>
+
+            <div className="mt-8 text-right">
+              <button
+                onClick={handleSave}
+                className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold px-6 py-2 rounded-lg shadow transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              >
+                Save All Changes
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
