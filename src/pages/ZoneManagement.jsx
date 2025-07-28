@@ -97,8 +97,8 @@ const ZoneManagement = () => {
         <tbody>
           {zones.map((zone) => (
             <tr key={zone.id} className="border-t">
-              <td className="p-3 font-medium">{zone.name}</td>
-              <td className="p-3">{zone.camera}</td>
+              <td className="p-3 font-bold text-white">{zone.name}</td>
+              <td className="p-3 text-white">{zone.camera}</td>
               <td className="p-3">
                 <span className={`px-2 py-1 text-sm rounded text-white ${
                   zone.sensitivity === 'High'
