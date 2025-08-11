@@ -47,7 +47,7 @@ export default function Dashboard() {
     };
     addToCameraStreams(newCamera);
     addEvent({
-      cameraName,
+      name: cameraName,
       zoneCategory: zone,
       date,
       time,
@@ -57,6 +57,17 @@ export default function Dashboard() {
     });
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.onloadedmetadata = () => {
+        videoRef.current.play().catch(err => {
+          console.error("Autoplay failed:", err);
+        });
+      };
+    }
+  }, [stream]);
 
   const handleWebcamAccess = async () => {
     try {
@@ -92,9 +103,16 @@ export default function Dashboard() {
     setShowWebcam(false);
   };
 
-  const filteredCameras = CameraStreams.filter(camera =>
-    camera.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCameras = (CameraStreams || []).filter(camera => {
+    // Check if camera exists and has name property
+    if (!camera || !camera.name) return false;
+    
+    // Safely compare lowercase strings
+    const cameraName = camera.name.toString().toLowerCase();
+    const searchTermLower = searchTerm.toLowerCase();
+    
+    return cameraName.includes(searchTermLower);
+  });
 
   const getSystemStats = () => {
     const totalCameras = CameraStreams.length;
@@ -310,7 +328,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Camera Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-8 mb-10">
                   {filteredCameras.map((camera, index) => (
                     <div key={index} className="w-full">
                       <CameraCard {...camera} />

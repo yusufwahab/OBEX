@@ -213,7 +213,7 @@ export default function Header({ addCameraStream }) {
               </div>
             </a> */}
 
-            <Link to='/login'
+            <Link to='/'
               onClick={() => setActive('logout')}
               className={`text-white md:px-4 md:py-3 lg:px-4 lg:py-3 rounded-xl text-sm font-semibold hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-300 bg-gradient-to-r from-cyan-600 to-blue-600 md:text-[12px] xl:text-[16px] shadow-lg hover:shadow-xl transform hover:scale-105 ${active === 'logout' ? 'ring-2 ring-cyan-400/50' : ''}`}
             >

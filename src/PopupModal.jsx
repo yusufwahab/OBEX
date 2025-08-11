@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEventStore } from "./store/history-store";
 import { useCameraStore } from "./store/camera-store";
 import { Camera, Globe, MapPin, Calendar, Clock, X } from "lucide-react";
@@ -7,23 +7,45 @@ export default function PopupModal({ onSave, onCancel }) {
   const [ipAddress, setIpAddress] = useState("");
   const [zone, setZone] = useState("");
   const [cameraName, setCameraName] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [currentDate, setCurrentDate] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
   const addEvent = useEventStore((state) => state.addEvent);
 
+  // Update current date and time when component mounts and every minute
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      setCurrentDate(now.toISOString().split('T')[0]);
+      setCurrentTime(now.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      }));
+    };
+
+    updateDateTime();
+    const interval = setInterval(updateDateTime, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   function handleSaveClick() {
+    if (!ipAddress || !zone || !cameraName) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     addEvent({
       cameraName,
       zone,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString(), 
+      date: currentDate,
+      time: currentTime,
       ipAddress,
       type: "ADDED",
       timestamp: new Date().toISOString(),
       description: `Added camera "${cameraName}" in ${zone} zone with IP: ${ipAddress}`,
     });
 
-    onSave(ipAddress, zone, cameraName, date, time);
+    onSave(ipAddress, zone, cameraName, currentDate, currentTime);
   }
 
   return (
@@ -61,7 +83,7 @@ export default function PopupModal({ onSave, onCancel }) {
           <div className="group">
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
               <Globe className="w-4 h-4 text-cyan-600" />
-              IP Address
+              IP Address *
             </label>
             <input
               type="text"
@@ -69,6 +91,7 @@ export default function PopupModal({ onSave, onCancel }) {
               onChange={(e) => setIpAddress(e.target.value)}
               placeholder="192.168.1.100"
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white/50 backdrop-blur-sm text-gray-700 placeholder-gray-400 transition-all duration-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 focus:outline-none hover:border-gray-300 dark:bg-gray-800/50 dark:border-gray-600 dark:text-white dark:placeholder-gray-500 dark:focus:border-cyan-400 dark:focus:ring-cyan-400/20"
+              required
             />
           </div>
 
@@ -76,12 +99,13 @@ export default function PopupModal({ onSave, onCancel }) {
           <div className="group">
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
               <MapPin className="w-4 h-4 text-blue-600" />
-              Zone Category
+              Zone Category *
             </label>
             <select
               value={zone}
               onChange={(e) => setZone(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white/50 backdrop-blur-sm text-gray-700 transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none hover:border-gray-300 dark:bg-gray-800/50 dark:border-gray-600 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400/20"
+              required
             >
               <option value="">-- Select Zone Category --</option>
               <option value="public">Public</option>
@@ -95,7 +119,7 @@ export default function PopupModal({ onSave, onCancel }) {
           <div className="group">
             <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
               <Camera className="w-4 h-4 text-purple-600" />
-              Camera Name
+              Camera Name *
             </label>
             <input
               type="text"
@@ -103,35 +127,30 @@ export default function PopupModal({ onSave, onCancel }) {
               onChange={(e) => setCameraName(e.target.value)}
               placeholder="e.g. Backyard Surveillance"
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white/50 backdrop-blur-sm text-gray-700 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 focus:outline-none hover:border-gray-300 dark:bg-gray-800/50 dark:border-gray-600 dark:text-white dark:placeholder-gray-500 dark:focus:border-purple-400 dark:focus:ring-purple-400/20"
+              required
             />
           </div>
 
-          {/* Date and Time Fields */}
+          {/* Auto-updated Date and Time Fields */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="group">
-              {/* <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            {/* <div className="group">
+              <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 <Calendar className="w-4 h-4 text-green-600" />
-                Date
+                Date Added
               </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white/50 backdrop-blur-sm text-gray-700 transition-all duration-200 focus:border-green-500 focus:ring-4 focus:ring-green-500/20 focus:outline-none hover:border-gray-300 dark:bg-gray-800/50 dark:border-gray-600 dark:text-white dark:focus:border-green-400 dark:focus:ring-green-400/20"
-              /> */}
-            </div>
-            <div className="group">
-              {/* <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <div className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50/50 backdrop-blur-sm text-gray-700 dark:bg-gray-700/50 dark:border-gray-600 dark:text-gray-300">
+                {currentDate}
+              </div>
+            </div> */}
+            {/* <div className="group">
+              <label className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 <Clock className="w-4 h-4 text-orange-600" />
-                Time
-              </label> */}
-              {/* <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white/50 backdrop-blur-sm text-gray-700 transition-all duration-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/20 focus:outline-none hover:border-gray-300 dark:bg-gray-800/50 dark:border-gray-600 dark:text-white dark:focus:border-orange-400 dark:focus:ring-orange-400/20"
-              /> */}
-            </div>
+                Time Added
+              </label>
+              <div className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50/50 backdrop-blur-sm text-gray-700 dark:bg-gray-700/50 dark:border-gray-600 dark:text-gray-300">
+                {currentTime}
+              </div>
+            </div> */}
           </div>
         </div>
 
