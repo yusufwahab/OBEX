@@ -1,283 +1,366 @@
-import React, { useState, useEffect, useRef } from "react";
-import {useCameraStore} from './store/camera-store';
-import useLoadingStore from './store/loading-store';
+import React, { useState, useEffect, useRef } from 'react';
+import { useCameraStore } from './store/camera-store';
+import { useEventStore } from './store/history-store';
+import Header from './Header';
 import LogoLoader from './LogoLoader';
-import CameraCard from "./CameraCard";
-import Header from "./Header";
-import PopupModal from "./PopupModal";
-import obexLogo from "./obex-logo.png"
-import './index.css'
-import { useEventStore } from "./store/history-store";
+import CameraCard from './CameraCard';
+import PopupModal from './PopupModal';
+import useLoadingStore from './store/loading-store';
 
 export default function Dashboard() {
-  const videoRef = useRef(null);
-  const [stream, setStream] = useState(null);
-  const [error, setError] = useState("");
-  const [askPermission, setAskPermission] = useState(true);
-
-  const handleStartCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        setStream(mediaStream);
-        setAskPermission(false); // hide permission prompt
-        setError("");
-      }
-    } catch (err) {
-      setError("Camera access was denied or not supported.");
-      console.error("Camera error:", err);
-    }
-  };
-
-  const handleStopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-      setAskPermission(true); // show permission prompt again
-    }
-  };
-
-
-
-
-
-
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-const [selectedCamera, setSelectedCamera] = useState(null);
-
-  const [showMain, setShowMain] = useState(true)
+  //LOAD BEFORE IT SHOWS DASHBOARD PAGE
+  const [showMain, setShowMain] = useState(false)
 
   const {showLoading, hideLoading} = useLoadingStore();
   useEffect(() => {
     showLoading();
-    setShowSection(false)
-    setShowMain(false)
     const timer = setTimeout(() => {
       hideLoading();
-      setShowSection(true)
-      setShowMain(true)
+      handleShowMain()
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
-  
 
-  const [showSection, setShowSection] = useState(true)
-
-  const CameraStreams = useCameraStore((state) => state.CameraStreams)
-
-  const addToCameraStreams = useCameraStore((state) => state.addToCameraStreams)
-
-  const clearCameraStreams = useCameraStore((state) => state.clearCameraStreams);
-
-const allcameras = [
-  { id: 1, cameraName: "Entrance Camera", date: "2025/07/07", time: "21:30", threatLevel: "Low", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera" },
-  { id: 2, cameraName: "Backyard Cam", date: "2025-07-07", time: "21:30", threatLevel: "Medium", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera" },
-  { id: 3, cameraName: "Office Cam", date: "2025-07-07", time: "21:30", threatLevel: "High", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera"},
-  { id: 4, cameraName: "Lobby Cam", date: "2025-07-07", time: "21:30", threatLevel: "Low", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera"},
-  { id: 5, cameraName: "Hallway Cam", date: "2025-07-07", time: "21:30", threatLevel: "Medium", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera" },
-  { id: 6, cameraName: "Garden Cam", date: "2025-07-07", time: "21:30", threatLevel: "High", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera" },
-  { id: 7, cameraName: "Room Cam", date: "2025-07-07", time: "21:30", threatLevel: "Low", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera" },
-  { id: 8, cameraName: "Ward Cam", date: "2025-07-07", time: "21:30", threatLevel: "Medium", ipAddress:"https://vdo.ninja/v17/?view=SN9rmgQ&label=PrimusLite_Camera" },
-];
-
-
-const cameraElement = CameraStreams.map(cam => (
-  <CameraCard key={cam.id} {...cam} />
-))
-
-
-
-  function addCameraStream () {
-    const nextCamera = allcameras.find(
-      (cam) => !CameraStreams.some((c) => c.id === cam.id)
-    );
-  
-    if (nextCamera) {
-      showLoading();
-      setTimeout(() => {
-        addToCameraStreams(nextCamera);
-        hideLoading();
-      }, 2000);
-    }
-  // `  if (CameraStreams.length < allcameras.length) {
-  //   showLoading()
-  //   setTimeout(() => {
-  //     addToCameraStreams(allcameras[CameraStreams.length]);
-  //     hideLoading();
-  //   }, 2000);
-  // }`
+  function handleShowMain () {
+    setShowMain(!showMain)
   }
 
-  // function handleClicks () {
-  //   addCameraStream()
-  // }
+  const { CameraStreams, addToCameraStreams, clearCameraStreams } = useCameraStore();
+  const { addEvent } = useEventStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showWebcam, setShowWebcam] = useState(false);
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
 
-  function handleClicks() {
-    const nextCamera = allcameras.find(
-      (cam) => !CameraStreams.some((c) => c.id === cam.id)
-    );
-  
-    if (nextCamera) {
-      setSelectedCamera(nextCamera);
-      setIsModalOpen(true); // Show modal
-    }
-  }
+  const handleModalSave = (ipAddress, zone, cameraName, date, time) => {
+    const newCamera = {
+      id: Date.now().toString(),
+      name: cameraName,
+      zoneCategory: zone,
+      date,
+      time,
+      ipAddress,
+      threatLevel: 'Low',
+      status: 'active',
+      url: `rtsp://${ipAddress}:554/stream`
+    };
+    addToCameraStreams(newCamera);
+    addEvent({
+      cameraName,
+      zoneCategory: zone,
+      date,
+      time,
+      ipAddress,
+      threatLevel: 'Low',
+      timestamp: Date.now(),
+    });
+    setIsModalOpen(false);
+  };
 
-  
-  
-
-  function handleModalSave(ipAddress, zone, cameraName, date, time) {
-    showLoading();
-    setTimeout(() => {
-      addToCameraStreams({
-        ...selectedCamera,
-        zoneCategory: zone,
-        cameraName: cameraName || selectedCamera.cameraName,
-        date: date || selectedCamera.date,
-        time: time || selectedCamera.time,
-        ipAddress: ipAddress || selectedCamera.ipAddress
+  const handleWebcamAccess = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        }, 
+        audio: false 
       });
-      hideLoading();
-      setIsModalOpen(false); // Close modal
-      setSelectedCamera(null);
-    }, 1000);
-  }
-  
-// ASK IF SURE TO CLEAR CAMERA
-  const handleClearCameras = () => {
-    const confirmed = window.confirm("Are you sure you want to clear all cameras?");
-    if (confirmed) {
-      clearCameraStreams(); // from Zustand store
+      setStream(mediaStream);
+      setShowWebcam(true);
+      
+      // Ensure video element is properly updated
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play().catch(console.error);
+        };
+      }
+    } catch (error) {
+      console.error('Error accessing webcam:', error);
+      alert('Unable to access webcam. Please check permissions and ensure no other application is using the camera.');
     }
   };
 
-  
+  const closeWebcam = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setShowWebcam(false);
+  };
+
+  const filteredCameras = CameraStreams.filter(camera =>
+    camera.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getSystemStats = () => {
+    const totalCameras = CameraStreams.length;
+    const activeCameras = CameraStreams.filter(c => c.status === 'active').length;
+    const highThreats = CameraStreams.filter(c => c.threatLevel === 'High').length;
+    const totalEvents = CameraStreams.length * 2; // Simulated event count
+    
+    return { totalCameras, activeCameras, highThreats, totalEvents };
+  };
+
+  const stats = getSystemStats();
+
   return (
     <>
-    <Header />
-    <LogoLoader />
-    {isModalOpen && (
-  <PopupModal
-    // ip={selectedCamera?.ipAddress}
-    onSave={handleModalSave}
-    onCancel={() => setIsModalOpen(false)}
-  />
-)}
-  
-    {showMain && <main className="mt-10 bg-gray-800 w-[90vw] h-auto   m-auto rounded-lg shadow shadow-cyan-400/50 mb-10 pb-10 pt-5 xl:w-[95vw]">
-<article className="flex justify-between items-center m-5">
-    <figure className=" flex text-3xl items-center gap-2 xl:ml-10 lg:ml-8 md:ml-6 ml-8">
-    <svg className="h-6 w-6 md:h-8 md:w-8 lg:h-10 lg:w-10 text-cyan-400 "
-                    fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                    <path strokeLinecap="round"
-                        d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-      <h1 className="text-[16px] md:text-2xl lg:text-3xl font-bold  text-gray-100">Live Feed</h1>
-      </figure>
-
-      <figure className="flex items-center gap-5 xl:gap-5 md:gap-5">
-        <button className="relative cursor-pointer  text-gray-100 md:hidden group"><i className="fa fa-search rounded-full"></i><span className="hidden group-hover:block absolute bottom-10 text-[14px]">Search for camera</span></button>
-        <input type="text"  className="cursor-pointer hidden md:block xl:w-100 md:h-8 md:p-3 xl:h-10 bg-gray-900 outline-1 outline-cyan-700 rounded-full text-gray-100 xl:p-5" placeholder="Search Camera"/>
-        {CameraStreams.length > 0 && (
-          <>
-          <button onClick={handleClearCameras} className="cursor-pointer outline-1 outline-cyan-700 w-40 h-10 rounded-lg text-gray-100 bg-gray-900 hidden md:block md:w-35 md:h-8 md:text-[14px]"><i className="fa-solid fa-trash"></i> clear all camera</button>
-
-          {/* MOBILE CLEAR BTN */}
-        <button onClick={handleClearCameras} className="relative group cursor-pointer text-gray-100  md:hidden xl:hidden w-8 h-8 p-2 bg-gray-900 text-[12px] rounded-full"><i className="fa-solid fa-trash"></i><span className="hidden group-hover:block absolute bottom-10">clear all cameras</span></button> 
-        </>)}
-      {/* Disable "+" When All Cameras Are Added */}
-      {CameraStreams.length < allcameras.length && <button onClick={handleClicks} className="cursor-pointer text-sm  text-gray-100 px-3 py-2 rounded-lg animate-bounce outline-2 outline-cyan-400 mr-10 lg:mr-20 " ><i className="fa fa-plus" aria-hidden="true"></i></button>}
-      </figure>
-    </article>
-
-
-    {/* Hide “Add Stream” Section When Cameras Exist */}
-    {/* <PopupModal /> */}
-    {CameraStreams.length === 0  && <><section className="flex justify-center items-center mt-10 relative">
-    <article className="grid place-content-center place-items-center bg-black/50 w-[80vw] xl:w-[90vw] h-[70vh] rounded-lg outline outline-cyan-900 shadow-md shadow-cyan-400/50 overflow-hidden">
-
-    {/* BUTTON FOR ACCESSING LIVE WEBCAM (lg screen) */}
-    <a href="#webcam" className="bg-cyan-600 p-2 rounded-lg text-white font-[500] md:absolute md:right-20 md:top-10 hidden md:block hover:bg-cyan-700">Access live webcam</a>
-    {/* <i className="fa-solid fa-camera-retro text-cyan-400 text-[100px] "></i> */}
-    <i className="fa fa-camera-retro  text-cyan-400 text-[50px] lg:text-[100px]"></i>
-      <h2 className="text-[20px] lg:text-[40px] font-bold text-gray-100 mb-6 mt-6"> Add Camera Stream</h2>
-      <p className="text-sm md:text-md lg:text-lg xl:text-xl 2xl:text-2xl text-gray-100 text-center w-[60%] mb-6"><span className="text-md font-bold text-cyan-400">Click on the Plus Icon to add camera stream.<br></br></span>
-        This will allow you to connect a new camera feed to the dashboard in real time. 
-      Make sure the stream URL is accessible and correctly connected.</p>
+      <Header />
+      <LogoLoader />
+      {isModalOpen && (
+        <PopupModal
+          onSave={handleModalSave}
+          onCancel={() => setIsModalOpen(false)}
+        />
+      )}
       
-      {/* BUTTON FOR ACCESSING LIVE WEBCAM (sm screen)*/}
-      <a href="#webcam" className="bg-cyan-600 p-3 rounded-lg text-white font-[500]  mt-10 md:hidden hover:bg-cyan-700">Access live webcam</a>
-    </article>
+      {showMain && (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-400/10 to-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/5 to-blue-500/5 rounded-full blur-3xl animate-ping"></div>
+          </div>
 
-    </section> 
-    
-    
-    <section id="webcam" className="grid place-items-center mt-10">
-  <div className="relative bg-black/50 rounded-2xl shadow-md shadow-cyan-400/50 overflow-hidden w-[80vw] md:w-[80vw] xl:w-[60vw] aspect-video cursor-pointer outline outline-cyan-900 focus-within:outline-cyan-400 hover:outline-cyan-400">
-    
-    {/* Ask Permission Prompt */}
-    {askPermission && !stream && (
-      <div className="absolute inset-0 z-10 grid place-items-center bg-black/60 text-white">
-        <div className="text-center">
-          <p className="mb-4 w-[70vw] md:text-lg xl:text-xl xl:w-[60vw]">
-            This app would like to access your camera. Do you want to allow it?
-          </p>
-          <button
-            onClick={handleStartCamera}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 transition rounded-md cursor-pointer"
-          >
-            Yes, Allow Camera
-          </button>
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Enhanced Header Section */}
+            <div className="mb-10">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    <div className="relative group">
+                      <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110">
+                        <i className="fa-solid fa-video text-white text-xl"></i>
+                      </div>
+                      <div className="absolute inset-0 bg-cyan-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <div>
+                      <h1 className="text-[24px] sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                        Security Dashboard
+                      </h1>
+                      <p className="text-gray-400 mt-2 text-lg">
+                        Real-time monitoring and control center for your security system
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-600/30">
+                    <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50 animate-pulse"></div>
+                    <span className="text-sm text-gray-300 font-medium">
+                      System Online
+                    </span>
+                  </div>
+                  
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 animate-bounce"
+                  >
+                    <i className="fa-solid fa-plus text-lg"></i>
+                    <span className="font-semibold">Add Camera</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Stats Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Total Cameras</p>
+                    <p className="text-3xl font-bold text-white mt-2 group-hover:text-cyan-400 transition-colors duration-300">{stats.totalCameras}</p>
+                    <p className="text-xs text-gray-500 mt-1">Connected devices</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i className="fa-solid fa-video text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Active Cameras</p>
+                    <p className="text-3xl font-bold text-emerald-400 mt-2 group-hover:text-emerald-300 transition-colors duration-300">{stats.activeCameras}</p>
+                    <p className="text-xs text-gray-500 mt-1">Live streams</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i className="fa-solid fa-play text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">High Threats</p>
+                    <p className="text-3xl font-bold text-red-400 mt-2 group-hover:text-red-300 transition-colors duration-300">{stats.highThreats}</p>
+                    <p className="text-xs text-gray-500 mt-1">Critical alerts</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i className="fa-solid fa-exclamation-triangle text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Total Events</p>
+                    <p className="text-3xl font-bold text-purple-400 mt-2 group-hover:text-purple-300 transition-colors duration-300">{stats.totalEvents}</p>
+                    <p className="text-xs text-gray-500 mt-1">System activities</p>
+                  </div>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <i className="fa-solid fa-chart-line text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Search and Controls */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">
+              <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+                <div className="flex flex-wrap gap-3 flex-1">
+                  <div className="relative flex-1 min-w-[280px]">
+                    <i className="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input
+                      type="text"
+                      placeholder="Search cameras by name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white placeholder-gray-400 border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={clearCameraStreams}
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 flex items-center gap-2"
+                  >
+                    <i className="fa-solid fa-trash text-lg"></i>
+                    <span className="hidden sm:inline">Clear All</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Camera Streams Section */}
+            {filteredCameras.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="w-32 h-32 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl border border-slate-600/30">
+                  <i className="fa-solid fa-video text-slate-400 text-5xl"></i>
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-4">No Cameras Connected</h2>
+                <p className="text-gray-400 text-lg max-w-md mx-auto mb-8">
+                  Get started by adding your first security camera to begin monitoring your premises.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-3"
+                  >
+                    <i className="fa-solid fa-plus text-xl"></i>
+                    Add Your First Camera
+                  </button>
+                  <button
+                    onClick={handleWebcamAccess}
+                    className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-emerald-400/30 flex items-center gap-3"
+                  >
+                    <i className="fa-solid fa-camera text-xl"></i>
+                    Access Webcam
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Live Feed Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-broadcast-tower text-white text-lg"></i>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Live Camera Feeds</h2>
+                    <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-full shadow-lg">
+                      {filteredCameras.length} Active
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-plus text-lg"></i>
+                      Add Camera
+                    </button>
+                    <button
+                      onClick={handleWebcamAccess}
+                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-emerald-400/30 flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-camera text-lg"></i>
+                      Webcam
+                    </button>
+                  </div>
+                </div>
+
+                {/* Camera Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 mb-10">
+                  {filteredCameras.map((camera, index) => (
+                    <div key={index} className="w-full">
+                      <CameraCard {...camera} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Enhanced Webcam Section */}
+            {showWebcam && (
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-xl mb-8 relative z-20">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-camera text-white text-lg"></i>
+                    </div>
+                    <h3 className="text-2xl font-bold text-white">Webcam Access</h3>
+                  </div>
+                  <button
+                    onClick={closeWebcam}
+                    className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30"
+                  >
+                    <i className="fa-solid fa-times text-lg"></i>
+                  </button>
+                </div>
+                
+                <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-2xl p-6 border border-slate-600/30 shadow-2xl">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-64 md:h-80 lg:h-96 rounded-xl border border-slate-600/50 shadow-lg object-cover bg-slate-800"
+                    style={{ minHeight: '256px' }}
+                  />
+                  {!stream && (
+                    <div className="w-full h-64 md:h-80 lg:h-96 rounded-xl border border-slate-600/50 bg-slate-800 flex items-center justify-center">
+                      <div className="text-center text-slate-400">
+                        <i className="fa-solid fa-camera text-4xl mb-4"></i>
+                        <p>Initializing webcam...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    )}
-
-    {/* Close Button */}
-    {stream && (
-      <button
-        onClick={handleStopCamera}
-        className="absolute top-4 right-4 px-4 py-2 bg-red-600 text-white rounded-md z-10 hover:bg-red-700 transition"
-      >
-        Close Camera
-      </button>
-    )}
-
-    {/* Error Message */}
-    {error && (
-      <p className="text-red-500 text-center mt-2">{error}</p>
-    )}
-
-    {/* Video */}
-    <video
-      ref={videoRef}
-      autoPlay
-      className="w-full h-full object-cover"
-    />
-  </div>
-</section>
-    </>}
-
-      
-
-      <section className=" grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3  gap-y-10  place-items-center 2xl:grid-cols-3 m-auto">
-
-      {/* Show Camera Streams, Declared by mapping through the cameraStreams array */}
-        {cameraElement}
-    
-      </section>
-
-
-
-      
-    </main> }
+      )}
     </>
   );
 }

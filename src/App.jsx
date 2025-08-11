@@ -7,6 +7,7 @@ import Dashboard from './Dashboard';
 import Settings from './pages/Settings';
 import History from './pages/History';
 import Profile from './pages/Profile';
+import Notification from './pages/Notification';
 import LogoLoader from './LogoLoader';
 import ZoneManagement from './pages/ZoneManagement';
 
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Signup />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -24,6 +26,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notification />} />
       </Routes>
     </BrowserRouter>
     </>
