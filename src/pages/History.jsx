@@ -12,7 +12,7 @@ export default function History() {
   //LOAD BEFORE IT SHOWS HISTORY PAGE
   const [showHistory, setShowHistory] = useState(false)
 
-  const {showLoading, hideLoading} = useLoadingStore();
+  const { showLoading, hideLoading } = useLoadingStore();
   useEffect(() => {
     showLoading();
     const timer = setTimeout(() => {
@@ -22,7 +22,7 @@ export default function History() {
     return () => clearTimeout(timer);
   }, []);
 
-  function handleShowHistory () {
+  function handleShowHistory() {
     setShowHistory(!showHistory)
   }
 
@@ -33,18 +33,24 @@ export default function History() {
 
   const formatTimestamp = (ts) => new Date(ts).toLocaleString();
 
-  const filteredEvents = events.filter((e) =>
-    (!search || String(e.cameraName || '').toLowerCase().includes(search.toLowerCase())) &&
+  // const filteredEvents = events.filter((e) =>
+  //   (!search || String(e.camera_name || '').toLowerCase().includes(search.toLowerCase())) &&
+  //   (!filterThreat || (e.threatLevel || '') === filterThreat) &&
+  //   (!filterDate || (e.date || '') === filterDate)
+  // );
+  const filteredEvents = (events || []).filter((e) =>
+    e &&
+    (!search || String(e.camera_name || '').toLowerCase().includes(search.toLowerCase())) &&
     (!filterThreat || (e.threatLevel || '') === filterThreat) &&
     (!filterDate || (e.date || '') === filterDate)
   );
-  
+
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text('Camera Event History', 14, 15);
 
     const tableData = filteredEvents.map((e) => [
-      e.cameraName,
+      e.camera_name,
       e.zoneCategory,
       e.date,
       e.time,
@@ -112,7 +118,7 @@ export default function History() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-600/30">
                     <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
@@ -120,7 +126,7 @@ export default function History() {
                       {filteredEvents.length} events found
                     </span>
                   </div>
-                  
+
                   <button
                     onClick={exportToPDF}
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30"
@@ -146,13 +152,13 @@ export default function History() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">High Threat</p>
                     <p className="text-3xl font-bold text-red-400 mt-2">
-                      {events.filter(e => e.threatLevel === 'High').length}
+                      {events.filter(e => e && e.threatLevel === 'High').length}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Critical alerts</p>
                   </div>
@@ -161,13 +167,13 @@ export default function History() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Medium Threat</p>
                     <p className="text-3xl font-bold text-amber-400 mt-2">
-                      {events.filter(e => e.threatLevel === 'Medium').length}
+                      {events.filter(e => e && e.threatLevel === 'Medium').length}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Warning alerts</p>
                   </div>
@@ -176,13 +182,13 @@ export default function History() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Low Threat</p>
                     <p className="text-3xl font-bold text-emerald-400 mt-2">
-                      {events.filter(e => e.threatLevel === 'Low').length}
+                      {events.filter(e => e && e.threatLevel === 'Low').length}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Info alerts</p>
                   </div>
@@ -207,7 +213,7 @@ export default function History() {
                       className="pl-12 pr-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white placeholder-gray-400 border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm w-full sm:w-80"
                     />
                   </div>
-                  
+
                   <select
                     value={filterThreat}
                     onChange={(e) => setFilterThreat(e.target.value)}
@@ -218,7 +224,7 @@ export default function History() {
                     <option value="Medium">Medium Threat</option>
                     <option value="Low">Low Threat</option>
                   </select>
-                  
+
                   <input
                     type="date"
                     value={filterDate}
@@ -237,7 +243,7 @@ export default function History() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">No events found</h3>
                 <p className="text-gray-400 text-lg max-w-md mx-auto">
-                  {search || filterThreat || filterDate 
+                  {search || filterThreat || filterDate
                     ? 'Try adjusting your search or filter criteria'
                     : 'No camera events recorded yet. Events will appear here once cameras are added or activities are detected.'
                   }
@@ -246,8 +252,8 @@ export default function History() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEvents.map((event, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="bg-gradient-to-br from-slate-800/80 to-slate-700/80 rounded-2xl p-6 border border-slate-600/30 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 backdrop-blur-sm group"
                   >
                     {/* Threat Level Header */}
@@ -270,10 +276,10 @@ export default function History() {
                       <div className="flex items-center gap-3">
                         <i className="fa-solid fa-video text-cyan-400 text-lg"></i>
                         <h3 className="text-lg font-bold text-white truncate">
-                          {String(event.cameraName)}
+                          {String(event.camera_name)}
                         </h3>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="flex items-center gap-2">
                           <i className="fa-solid fa-map-marker-alt text-slate-400"></i>
@@ -281,21 +287,21 @@ export default function History() {
                             Zone: <span className="text-white font-medium">{String(event.zone || 'N/A')}</span>
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <i className="fa-solid fa-calendar text-slate-400"></i>
                           <span className="text-gray-300">
                             Date: <span className="text-white font-medium">{String(event.date)}</span>
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <i className="fa-solid fa-clock text-slate-400"></i>
                           <span className="text-gray-300">
                             Time: <span className="text-white font-medium">{String(event.time)}</span>
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <i className="fa-solid fa-network-wired text-slate-400"></i>
                           <span className="text-gray-300">
@@ -303,7 +309,7 @@ export default function History() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="pt-3 border-t border-slate-600/30">
                         <div className="flex items-center gap-2 text-xs text-gray-400">
                           <i className="fa-solid fa-clock text-slate-500"></i>

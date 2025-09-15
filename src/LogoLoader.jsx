@@ -1,6 +1,6 @@
 import React from 'react'
 import useLoadingStore from './store/loading-store'
-import primusLogo from './obex-logo.png'
+import obexLogo from './obex-logo.png'
 
 export default function LogoLoader() {
     const loading = useLoadingStore((state) => state.loading);
@@ -15,25 +15,25 @@ export default function LogoLoader() {
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse animation-delay-1000"></div>
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-500/10 rounded-full blur-3xl animate-ping"></div>
             </div>
-            
+
             {/* Main logo container */}
             <div className="relative z-10">
                 {/* Glowing effect behind logo */}
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full blur-2xl opacity-30 animate-pulse"></div>
-                
+
                 {/* Logo with enhanced animations */}
                 <div className="relative">
-                    <img 
-                        src={primusLogo} 
-                        alt="Loading..." 
+                    <img
+                        src={obexLogo}
+                        alt="Loading..."
                         className="w-40 h-20 xl:w-60 xl:h-30 animate-bounce drop-shadow-2xl filter brightness-110"
                     />
-                    
+
                     {/* Ripple effect */}
                     <div className="absolute inset-0 rounded-full border-2 border-cyan-400/50 animate-ping"></div>
                     <div className="absolute inset-0 rounded-full border-2 border-blue-500/50 animate-ping animation-delay-500"></div>
                 </div>
-                
+
                 {/* Loading text */}
                 <div className="mt-8 text-center">
                     <h2 className="text-2xl xl:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 animate-pulse">
@@ -43,7 +43,7 @@ export default function LogoLoader() {
                         Loading Security System...
                     </p>
                 </div>
-                
+
                 {/* Loading dots */}
                 <div className="flex justify-center mt-6 space-x-2">
                     <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
@@ -51,7 +51,7 @@ export default function LogoLoader() {
                     <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce animation-delay-400"></div>
                 </div>
             </div>
-            
+
             {/* Floating particles */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-20 left-20 w-1 h-1 bg-cyan-400 rounded-full animate-ping opacity-60"></div>

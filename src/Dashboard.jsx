@@ -8,24 +8,29 @@ import PopupModal from './PopupModal';
 import useLoadingStore from './store/loading-store';
 
 export default function Dashboard() {
-  //LOAD BEFORE IT SHOWS DASHBOARD PAGE
-  const [showMain, setShowMain] = useState(false)
+  // LOAD BEFORE IT SHOWS DASHBOARD PAGE
+  const [showMain, setShowMain] = useState(false);
 
-  const {showLoading, hideLoading} = useLoadingStore();
+  const { showLoading, hideLoading } = useLoadingStore();
+
   useEffect(() => {
     showLoading();
     const timer = setTimeout(() => {
       hideLoading();
-      handleShowMain()
+      setShowMain(true);
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
-  function handleShowMain () {
-    setShowMain(!showMain)
-  }
+  // Camera store state and actions
+  const {
+    CameraStreams,
+    isLoading: isLoadingCameras,
+    error: cameraError,
+    clearCameraStreams,
+    clearError
+  } = useCameraStore();
 
-  const { CameraStreams, addToCameraStreams, clearCameraStreams } = useCameraStore();
   const { addEvent } = useEventStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,29 +38,27 @@ export default function Dashboard() {
   const [stream, setStream] = useState(null);
   const videoRef = useRef(null);
 
-  const handleModalSave = (ipAddress, zone, cameraName, date, time) => {
-    const newCamera = {
-      id: Date.now().toString(),
-      name: cameraName,
-      zoneCategory: zone,
-      date,
-      time,
-      ipAddress,
-      threatLevel: 'Low',
-      status: 'active',
-      url: `rtsp://${ipAddress}:554/stream`
-    };
-    addToCameraStreams(newCamera);
-    addEvent({
-      name: cameraName,
-      zoneCategory: zone,
-      date,
-      time,
-      ipAddress,
-      threatLevel: 'Low',
-      timestamp: Date.now(),
-    });
-    setIsModalOpen(false);
+  // Only fetch cameras when explicitly requested (not automatically)
+  // useEffect(() => {
+  //   if (showMain) {
+  //     fetchCameras();
+  //   }
+  // }, [showMain, fetchCameras]);
+
+  // Clear any errors when component unmounts
+  useEffect(() => {
+    return () => clearError();
+  }, [clearError]);
+
+  const handleModalSave = async (cameraData) => {
+    try {
+      // The addToCameraStreams function will handle API call and refresh
+      await useCameraStore.getState().addToCameraStreams(cameraData);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to add camera:", error);
+      // Modal stays open so user can try again
+    }
   };
 
   useEffect(() => {
@@ -71,18 +74,17 @@ export default function Dashboard() {
 
   const handleWebcamAccess = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
           facingMode: 'user'
-        }, 
-        audio: false 
+        },
+        audio: false
       });
       setStream(mediaStream);
       setShowWebcam(true);
-      
-      // Ensure video element is properly updated
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         videoRef.current.onloadedmetadata = () => {
@@ -103,15 +105,35 @@ export default function Dashboard() {
     setShowWebcam(false);
   };
 
+  const handleClearAll = async () => {
+    if (window.confirm("Are you sure you want to delete all cameras? This action cannot be undone.")) {
+      try {
+        await clearCameraStreams();
+
+        // Add event
+        addEvent({
+          type: "BULK_DELETE",
+          timestamp: new Date().toISOString(),
+          description: "All cameras cleared from system",
+        });
+
+        alert("All cameras have been deleted successfully!");
+      } catch (error) {
+        console.error("Error clearing cameras:", error);
+        alert("Some cameras could not be deleted. Please try again.");
+      }
+    }
+  };
+
+
+
   const filteredCameras = (CameraStreams || []).filter(camera => {
-    // Check if camera exists and has name property
-    if (!camera || !camera.name) return false;
-    
-    // Safely compare lowercase strings
-    const cameraName = camera.name.toString().toLowerCase();
+    if (!camera || !camera.camera_name) return false;
+
+    const camera_name = camera.camera_name.toString().toLowerCase();
     const searchTermLower = searchTerm.toLowerCase();
-    
-    return cameraName.includes(searchTermLower);
+
+    return camera_name.includes(searchTermLower);
   });
 
   const getSystemStats = () => {
@@ -119,7 +141,7 @@ export default function Dashboard() {
     const activeCameras = CameraStreams.filter(c => c.status === 'active').length;
     const highThreats = CameraStreams.filter(c => c.threatLevel === 'High').length;
     const totalEvents = CameraStreams.length * 2; // Simulated event count
-    
+
     return { totalCameras, activeCameras, highThreats, totalEvents };
   };
 
@@ -135,7 +157,7 @@ export default function Dashboard() {
           onCancel={() => setIsModalOpen(false)}
         />
       )}
-      
+
       {showMain && (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
           {/* Animated Background Elements */}
@@ -167,7 +189,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-600/30">
                     <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50 animate-pulse"></div>
@@ -175,17 +197,35 @@ export default function Dashboard() {
                       System Online
                     </span>
                   </div>
-                  
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 animate-bounce"
-                  >
-                    <i className="fa-solid fa-plus text-lg"></i>
-                    <span className="font-semibold">Add Camera</span>
-                  </button>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 animate-bounce"
+                    >
+                      <i className="fa-solid fa-plus text-lg"></i>
+                      <span className="font-semibold">Add Camera</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Error Display */}
+            {cameraError && (
+              <div className="mb-6 bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-500/30 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <i className="fa-solid fa-exclamation-triangle text-red-400"></i>
+                  <p className="text-red-300">{cameraError}</p>
+                  <button
+                    onClick={clearError}
+                    className="ml-auto text-red-400 hover:text-red-300"
+                  >
+                    <i className="fa-solid fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Enhanced Stats Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -201,7 +241,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
                 <div className="flex items-center justify-between">
                   <div>
@@ -214,7 +254,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
                 <div className="flex items-center justify-between">
                   <div>
@@ -227,7 +267,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
                 <div className="flex items-center justify-between">
                   <div>
@@ -256,10 +296,11 @@ export default function Dashboard() {
                       className="w-full pl-12 pr-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white placeholder-gray-400 border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
                     />
                   </div>
-                  
+
                   <button
-                    onClick={clearCameraStreams}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 flex items-center gap-2"
+                    onClick={handleClearAll}
+                    disabled={CameraStreams.length === 0}
+                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <i className="fa-solid fa-trash text-lg"></i>
                     <span className="hidden sm:inline">Clear All</span>
@@ -268,15 +309,27 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Loading State */}
+            {isLoadingCameras && (
+              <div className="text-center py-20">
+                <div className="w-16 h-16 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-white text-lg">Loading cameras...</p>
+              </div>
+            )}
+
             {/* Enhanced Camera Streams Section */}
-            {filteredCameras.length === 0 ? (
+            {!isLoadingCameras && filteredCameras.length === 0 ? (
               <div className="text-center py-20">
                 <div className="w-32 h-32 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl border border-slate-600/30">
                   <i className="fa-solid fa-video text-slate-400 text-5xl"></i>
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-4">No Cameras Connected</h2>
+                <h2 className="text-3xl font-bold text-white mb-4">
+                  {CameraStreams.length === 0 ? "No Cameras Connected" : "No cameras match your search"}
+                </h2>
                 <p className="text-gray-400 text-lg max-w-md mx-auto mb-8">
-                  Get started by adding your first security camera to begin monitoring your premises.
+                  {CameraStreams.length === 0
+                    ? "Get started by adding your first security camera to begin monitoring your premises."
+                    : `No cameras found matching "${searchTerm}". Try adjusting your search term.`}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
@@ -284,7 +337,7 @@ export default function Dashboard() {
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-3"
                   >
                     <i className="fa-solid fa-plus text-xl"></i>
-                    Add Your First Camera
+                    {CameraStreams.length === 0 ? "Add Your First Camera" : "Add New Camera"}
                   </button>
                   <button
                     onClick={handleWebcamAccess}
@@ -295,7 +348,7 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : !isLoadingCameras && (
               <>
                 {/* Live Feed Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -308,7 +361,7 @@ export default function Dashboard() {
                       {filteredCameras.length} Active
                     </span>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsModalOpen(true)}
@@ -330,7 +383,7 @@ export default function Dashboard() {
                 {/* Camera Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-8 mb-10">
                   {filteredCameras.map((camera, index) => (
-                    <div key={index} className="w-full">
+                    <div key={camera.id || index} className="w-full">
                       <CameraCard {...camera} />
                     </div>
                   ))}
@@ -355,7 +408,7 @@ export default function Dashboard() {
                     <i className="fa-solid fa-times text-lg"></i>
                   </button>
                 </div>
-                
+
                 <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-2xl p-6 border border-slate-600/30 shadow-2xl">
                   <video
                     ref={videoRef}
@@ -382,6 +435,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-
-

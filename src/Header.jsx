@@ -1,5 +1,5 @@
 import { useState } from "react";
-import primusLogo from './obex-logo.png';
+import obexLogoHeader from './obex-logo-noText.png';
 import { useNavStore } from "./store/navigation-store";
 import { Link } from "react-router-dom";
 
@@ -25,7 +25,7 @@ export default function Header({ addCameraStream }) {
           <Link to="/" className="flex items-center group">
             <div className="relative">
               <img
-                src={primusLogo}
+                src={obexLogoHeader}
                 alt="primus logo"
                 className="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 cursor-pointer transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
               />
@@ -82,7 +82,7 @@ export default function Header({ addCameraStream }) {
 
           {/* Nav Links (Desktop) */}
           <article className="hidden md:flex space-x-2 items-center">
-            <Link to= '/dashboard'
+            <Link to='/dashboard'
               key="dashboard"
               onClick={() => { handleDropdownDashboard(); setActive('dashboard'); }}
               className={`relative text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-gradient-to-r hover:from-slate-700 hover:to-slate-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-300 md:text-[12px] lg:text-[14px] xl:text-[16px] group ${active === 'dashboard' ? 'bg-gradient-to-r from-slate-700 to-slate-600 ring-2 ring-cyan-400/50 shadow-lg' : 'hover:shadow-lg'}`}

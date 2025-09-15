@@ -30,6 +30,7 @@ const Login = () => {
       setMessageType('success');
 
       localStorage.setItem('primusLiteToken', res.data.token);
+      // localStorage.setItem('primusLiteUserId', res.data.user._id); //just added the user Id to save, was not there before
       navigate('/dashboard');
 
     } catch (err) {
@@ -61,7 +62,7 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md">
         {/* Glowing effect behind form */}
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
-        
+
         <form
           onSubmit={handleSubmit}
           className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-8 md:p-10 rounded-3xl border border-white/20 shadow-2xl shadow-cyan-500/20 space-y-6 transform transition-all duration-300 hover:scale-[1.02]"
@@ -126,11 +127,10 @@ const Login = () => {
 
           {/* Message Display */}
           {message && (
-            <div className={`p-4 rounded-xl border ${
-              messageType === 'success' 
-                ? 'bg-green-500/20 border-green-500/30 text-green-300' 
-                : 'bg-red-500/20 border-red-500/30 text-red-300'
-            } flex items-center justify-center`}>
+            <div className={`p-4 rounded-xl border ${messageType === 'success'
+              ? 'bg-green-500/20 border-green-500/30 text-green-300'
+              : 'bg-red-500/20 border-red-500/30 text-red-300'
+              } flex items-center justify-center`}>
               {messageType === 'success' ? <CheckCircle size={16} className="mr-2" /> : <XCircle size={16} className="mr-2" />}
               {message}
             </div>

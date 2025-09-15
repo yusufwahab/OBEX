@@ -8,7 +8,7 @@ const Settings = () => {
   //LOAD BEFORE IT SHOWS SETTINGS PAGE
   const [showSettings, setShowSettings] = useState(false)
 
-  const {showLoading, hideLoading} = useLoadingStore();
+  const { showLoading, hideLoading } = useLoadingStore();
   useEffect(() => {
     showLoading();
     const timer = setTimeout(() => {
@@ -18,7 +18,7 @@ const Settings = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  function handleShowSettings () {
+  function handleShowSettings() {
     setShowSettings(!showSettings)
   }
 
@@ -110,7 +110,7 @@ const Settings = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-600/30">
                     <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50"></div>
@@ -118,7 +118,7 @@ const Settings = () => {
                       Settings Active
                     </span>
                   </div>
-                  
+
                   <button
                     onClick={handleSave}
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30"
@@ -140,7 +140,7 @@ const Settings = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-white">Notification Preferences</h2>
                 </div>
-                
+
                 <div className="space-y-6">
                   {[
                     { key: 'email', label: 'Email Notifications', icon: 'fa-solid fa-envelope', desc: 'Receive alerts via email' },
@@ -183,7 +183,7 @@ const Settings = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-white">Account Settings</h2>
                 </div>
-                
+
                 <div className="space-y-4">
                   {[
                     { key: 'username', label: 'Username', type: 'text', icon: 'fa-solid fa-user', disabled: false },
@@ -201,9 +201,8 @@ const Settings = () => {
                           value={accountSettings[key]}
                           onChange={(e) => setAccountSettings({ ...accountSettings, [key]: e.target.value })}
                           disabled={disabled}
-                          className={`w-full pl-12 pr-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm ${
-                            disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-500/50'
-                          }`}
+                          className={`w-full pl-12 pr-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-500/50'
+                            }`}
                         />
                       </div>
                     </div>
@@ -219,7 +218,7 @@ const Settings = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-white">Security Settings</h2>
                 </div>
-                
+
                 <div className="space-y-6">
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl border border-slate-600/30">
                     <div className="flex items-center gap-3">
@@ -292,7 +291,7 @@ const Settings = () => {
                   </div>
                   <h2 className="text-2xl font-bold text-white">System Information</h2>
                 </div>
-                
+
                 <div className="space-y-4">
                   {[
                     { label: 'System Version', value: 'OBEX v2.1.0', icon: 'fa-solid fa-code-branch' },

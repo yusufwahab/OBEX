@@ -6,14 +6,14 @@ import useLoadingStore from '../store/loading-store';
 
 const Profile = () => {
   const { setActive } = useNavStore();
-  const [profile, setProfile] = useState({ 
-    name: 'John Doe', 
-    email: 'john.doe@obex.com', 
+  const [profile, setProfile] = useState({
+    full_name: '',
+    email: '',
     role: 'Security Administrator',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-    phone: '+1 (555) 123-4567',
+    phone: '',
     department: 'Security Operations',
-    location: 'New York, NY',
+    location: 'Lagos, Nigeria',
     joinDate: '2023-01-15',
     lastLogin: '2025-01-15 14:30',
     status: 'Active',
@@ -28,12 +28,16 @@ const Profile = () => {
     setActive('profile');
     const fetchProfile = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/auth/profile', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        const response = await fetch('https://primus-lite.onrender.com/api/users/', {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${localStorage.getItem('primusLiteToken')}` },
         });
         if (!response.ok) throw new Error('Failed to fetch profile');
-        const data = await response.json();
-        setProfile(data);
+        const result = await response.json();
+        setProfile(prev => ({
+          ...prev,
+          ...result.data, // only update the fields backend sent
+        }));;
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -44,8 +48,8 @@ const Profile = () => {
   const handleSave = async () => {
     setShowLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/auth/profile', {
-        method: 'PUT',
+      const response = await fetch('https://primus-lite.onrender.com/api/users/update', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -76,12 +80,12 @@ const Profile = () => {
     <>
       <Header />
       <LogoLoader />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(6,182,212,0.1),transparent_50%)] opacity-60"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(59,130,246,0.1),transparent_50%)] opacity-60"></div>
-        
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Enhanced Header Section */}
           <div className="mb-12">
@@ -104,7 +108,7 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div className="flex items-center gap-4 bg-gradient-to-r from-slate-800/60 to-slate-700/60 backdrop-blur-xl px-6 py-3 rounded-2xl border border-slate-600/40 shadow-xl">
                   <div className={`w-4 h-4 bg-gradient-to-r ${getStatusColor(profile.status)} rounded-full shadow-lg animate-pulse`}></div>
@@ -112,7 +116,7 @@ const Profile = () => {
                     Status: {profile.status}
                   </span>
                 </div>
-                
+
                 <div className="flex gap-4">
                   {isEditing ? (
                     <>
@@ -161,20 +165,46 @@ const Profile = () => {
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-10 border border-white/20 shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 group">
                 {/* Avatar Section */}
                 <div className="text-center mb-10">
-                  <div className="relative inline-block group">
+                  <div
+                    className="relative inline-block group cursor-pointer"
+                    onClick={() => document.getElementById("avatarInput").click()}
+                  >
                     <img
                       src={profile.avatar}
                       alt="Profile Avatar"
-                      className="w-40 h-40 rounded-full border-4 border-cyan-400/40 shadow-2xl shadow-cyan-500/25 transition-all duration-300 group-hover:border-cyan-400/60 group-hover:scale-105"
+                      className="w-40 h-40 rounded-full border-4 border-cyan-400/40 shadow-2xl shadow-cyan-500/25 transition-all duration-300 group-hover:border-cyan-400/60 group-hover:scale-105 object-cover"
                     />
-                    <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-xl shadow-cyan-500/50 cursor-pointer hover:scale-110 transition-all duration-300">
+
+                    {/* Camera Button */}
+                    <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-xl shadow-cyan-500/50 hover:scale-110 transition-all duration-300">
                       <i className="fa-solid fa-camera text-white text-lg"></i>
                     </div>
+
+                    {/* Glow Hover Effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
                   </div>
+
+                  {/* Hidden File Input */}
+                  <input
+                    type="file"
+                    id="avatarInput"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const imageUrl = URL.createObjectURL(file);
+                      setProfile({ ...profile, avatar: imageUrl }); // update preview
+                    }}
+                  />
+
                   <h2 className="text-3xl font-bold text-white mt-6 mb-2">{profile.name}</h2>
                   <p className="text-cyan-300 font-semibold text-lg mb-4">{profile.role}</p>
-                  <div className={`inline-block px-6 py-3 bg-gradient-to-r ${getStatusColor(profile.status)} rounded-full text-white text-sm font-bold shadow-lg shadow-cyan-500/25`}>
+                  <div
+                    className={`inline-block px-6 py-3 bg-gradient-to-r ${getStatusColor(
+                      profile.status
+                    )} rounded-full text-white text-sm font-bold shadow-lg shadow-cyan-500/25`}
+                  >
                     {profile.status}
                   </div>
                 </div>
@@ -225,16 +255,16 @@ const Profile = () => {
                   </div>
                   <h2 className="text-3xl font-bold text-white">Profile Information</h2>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {[
-                    { key: 'name', label: 'Full Name', type: 'text', icon: 'fa-solid fa-user', required: true },
+                    { key: 'full_name', label: 'Full Name', type: 'text', icon: 'fa-solid fa-user', required: true },
                     { key: 'email', label: 'Email Address', type: 'email', icon: 'fa-solid fa-envelope', required: true },
                     { key: 'phone', label: 'Phone Number', type: 'tel', icon: 'fa-solid fa-phone', required: false },
                     { key: 'department', label: 'Department', type: 'text', icon: 'fa-solid fa-building', required: false },
                     { key: 'location', label: 'Location', type: 'text', icon: 'fa-solid fa-map-marker-alt', required: false },
                     { key: 'role', label: 'User Role', type: 'text', icon: 'fa-solid fa-shield-alt', required: true, disabled: true },
-                  ].map(({ key, label, type, icon, required, disabled }) => (
+                  ].map(({ key, label, type, icon, required, disabled, }) => (
                     <div key={key} className={key === 'role' ? 'md:col-span-2' : ''}>
                       <label className="block text-sm text-gray-300 mb-3 font-semibold">
                         {label} {required && <span className="text-red-400">*</span>}
@@ -245,10 +275,10 @@ const Profile = () => {
                           type={type}
                           value={profile[key]}
                           onChange={(e) => setProfile({ ...profile, [key]: e.target.value })}
-                          disabled={disabled || !isEditing}
-                          className={`w-full pl-14 pr-5 py-4 bg-gradient-to-r from-slate-700/80 to-slate-800/80 text-white border border-slate-600/50 focus:border-cyan-400/60 focus:ring-4 focus:ring-cyan-400/20 rounded-2xl focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm text-lg ${
-                            disabled || !isEditing ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-500/60 hover:shadow-lg hover:shadow-slate-500/20'
-                          }`}
+                          disabled={["full_name", "email", "phone"].includes(key) || !isEditing}
+                          readOnly={["full_name", "email", "phone"].includes(key)}
+                          className={`w-full pl-14 pr-5 py-4 bg-gradient-to-r from-slate-700/80 to-slate-800/80 text-white border border-slate-600/50 focus:border-cyan-400/60 focus:ring-4 focus:ring-cyan-400/20 rounded-2xl focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm text-lg ${disabled || !isEditing ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-500/60 hover:shadow-lg hover:shadow-slate-500/20'
+                            }`}
                         />
                       </div>
                     </div>
@@ -270,7 +300,7 @@ const Profile = () => {
                         disabled={!isEditing}
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm text-gray-300 mb-3 font-semibold">Skills & Expertise</label>
                       <div className="flex flex-wrap gap-3">
