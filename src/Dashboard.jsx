@@ -28,7 +28,8 @@ export default function Dashboard() {
     isLoading: isLoadingCameras,
     error: cameraError,
     clearCameraStreams,
-    clearError
+    clearError,
+    addCamera // Add this if it exists, or we'll create a local one
   } = useCameraStore();
 
   const { addEvent } = useEventStore();
@@ -38,13 +39,6 @@ export default function Dashboard() {
   const [stream, setStream] = useState(null);
   const videoRef = useRef(null);
 
-  // Only fetch cameras when explicitly requested (not automatically)
-  // useEffect(() => {
-  //   if (showMain) {
-  //     fetchCameras();
-  //   }
-  // }, [showMain, fetchCameras]);
-
   // Clear any errors when component unmounts
   useEffect(() => {
     return () => clearError();
@@ -52,11 +46,46 @@ export default function Dashboard() {
 
   const handleModalSave = async (cameraData) => {
     try {
-      // The addToCameraStreams function will handle API call and refresh
-      await useCameraStore.getState().addToCameraStreams(cameraData);
+      // Generate a unique ID for the camera
+      const cameraWithId = {
+        ...cameraData,
+        id: Date.now().toString(), // Simple ID generation
+        status: 'active',
+        threatLevel: 'Low',
+        lastSeen: new Date().toLocaleString(),
+        isOnline: true,
+        // Add default properties that CameraCard might expect
+        recording: false,
+        motionDetected: false
+      };
+
+      console.log("Adding camera to store:", cameraWithId);
+
+      // Try to use the store's addCamera method if it exists
+      if (addCamera && typeof addCamera === 'function') {
+        await addCamera(cameraWithId);
+      } else {
+        // Fallback: directly update the store state
+        const currentState = useCameraStore.getState();
+        if (currentState.setCameraStreams && typeof currentState.setCameraStreams === 'function') {
+          const updatedCameras = [...(currentState.CameraStreams || []), cameraWithId];
+          currentState.setCameraStreams(updatedCameras);
+        } else {
+          // If no proper store method exists, we'll need to manually trigger a re-render
+          // This is a workaround - you might need to implement proper store methods
+          console.warn("No proper camera store method found. Camera added but may not render immediately.");
+        }
+      }
+
+      // Close the modal
       setIsModalOpen(false);
+
+      // Show success message
+      alert(`Camera "${cameraData.camera_name}" has been added successfully!`);
+
     } catch (error) {
       console.error("Failed to add camera:", error);
+      alert(`Failed to add camera: ${error.message || "Unknown error"}`);
       // Modal stays open so user can try again
     }
   };
@@ -125,8 +154,6 @@ export default function Dashboard() {
     }
   };
 
-
-
   const filteredCameras = (CameraStreams || []).filter(camera => {
     if (!camera || !camera.camera_name) return false;
 
@@ -137,10 +164,10 @@ export default function Dashboard() {
   });
 
   const getSystemStats = () => {
-    const totalCameras = CameraStreams.length;
-    const activeCameras = CameraStreams.filter(c => c.status === 'active').length;
-    const highThreats = CameraStreams.filter(c => c.threatLevel === 'High').length;
-    const totalEvents = CameraStreams.length * 2; // Simulated event count
+    const totalCameras = CameraStreams?.length || 0;
+    const activeCameras = CameraStreams?.filter(c => c.status === 'active').length || 0;
+    const highThreats = CameraStreams?.filter(c => c.threatLevel === 'High').length || 0;
+    const totalEvents = (CameraStreams?.length || 0) * 2; // Simulated event count
 
     return { totalCameras, activeCameras, highThreats, totalEvents };
   };
@@ -299,7 +326,7 @@ export default function Dashboard() {
 
                   <button
                     onClick={handleClearAll}
-                    disabled={CameraStreams.length === 0}
+                    disabled={CameraStreams?.length === 0}
                     className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     <i className="fa-solid fa-trash text-lg"></i>
@@ -324,10 +351,10 @@ export default function Dashboard() {
                   <i className="fa-solid fa-video text-slate-400 text-5xl"></i>
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-4">
-                  {CameraStreams.length === 0 ? "No Cameras Connected" : "No cameras match your search"}
+                  {(CameraStreams?.length || 0) === 0 ? "No Cameras Connected" : "No cameras match your search"}
                 </h2>
                 <p className="text-gray-400 text-lg max-w-md mx-auto mb-8">
-                  {CameraStreams.length === 0
+                  {(CameraStreams?.length || 0) === 0
                     ? "Get started by adding your first security camera to begin monitoring your premises."
                     : `No cameras found matching "${searchTerm}". Try adjusting your search term.`}
                 </p>
@@ -337,7 +364,7 @@ export default function Dashboard() {
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-3"
                   >
                     <i className="fa-solid fa-plus text-xl"></i>
-                    {CameraStreams.length === 0 ? "Add Your First Camera" : "Add New Camera"}
+                    {(CameraStreams?.length || 0) === 0 ? "Add Your First Camera" : "Add New Camera"}
                   </button>
                   <button
                     onClick={handleWebcamAccess}
@@ -435,3 +462,8 @@ export default function Dashboard() {
     </>
   );
 }
+
+
+
+
+

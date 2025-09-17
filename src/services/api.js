@@ -83,6 +83,23 @@ export const cameraAPI = {
         const response = await api.delete(`/cameras/${cameraId}`);
         return response.data;
     },
+
+    // Test camera connection (expects backend endpoint support)
+    testConnection: async ({ ipAddress, username, password, streamUrl }) => {
+        try {
+            const response = await api.post('/cameras/test', {
+                ipAddress,
+                username,
+                password,
+                streamUrl,
+            });
+            return response.data; // { success: boolean, snapshotUrl?: string, message?: string }
+        } catch (error) {
+            // Bubble up with normalized message
+            const message = error?.response?.data?.message || error.message || 'Test connection failed';
+            throw new Error(message);
+        }
+    },
 };
 
 export default api;
