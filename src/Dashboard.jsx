@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ ADDED
 import { useCameraStore } from './store/camera-store';
 import { useEventStore } from './store/history-store';
 import Header from './Header';
@@ -8,6 +9,8 @@ import PopupModal from './PopupModal';
 import useLoadingStore from './store/loading-store';
 
 export default function Dashboard() {
+  const navigate = useNavigate(); // ✅ ADDED
+
   // LOAD BEFORE IT SHOWS DASHBOARD PAGE
   const [showMain, setShowMain] = useState(false);
 
@@ -208,7 +211,7 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  {/* ✅ Updated: Added Primus Stream button beside Add Camera */}
+                  {/* ✅ Updated: Primus Stream button now navigates */}
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsModalOpen(true)}
@@ -220,9 +223,7 @@ export default function Dashboard() {
 
                     <button
                       onClick={() => {
-                        console.log("🚀 Primus Stream button clicked!");
-                        alert("Primus Stream feature coming soon!");
-                        // TODO: Replace with your streaming logic
+                        navigate('/primus-stream'); // ✅ NAVIGATE TO STREAM CLIENT
                       }}
                       className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-purple-400/30"
                     >
@@ -337,7 +338,7 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  {/* ✅ Updated: Added Primus Stream button beside Add Camera */}
+                  {/* ✅ Updated: Primus Stream button now navigates */}
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsModalOpen(true)}
@@ -349,9 +350,7 @@ export default function Dashboard() {
 
                     <button
                       onClick={() => {
-                        console.log("🚀 Primus Stream button clicked!");
-                        alert("Primus Stream feature coming soon!");
-                        // TODO: Replace with your streaming logic
+                        navigate('/StreamClient');  
                       }}
                       className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-purple-400/30 flex items-center gap-2"
                     >

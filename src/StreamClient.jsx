@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ ADDED FOR NAVIGATION
 
 const StreamClient = () => {
+  const navigate = useNavigate(); // ✅ FOR BACK BUTTON
+
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
@@ -52,7 +55,7 @@ const StreamClient = () => {
   const addLog = useCallback((message, type = 'info') => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [
-      ...prev.slice(-99), // Keep only last 100 logs
+      ...prev.slice(-99),
       { timestamp, message, type, id: Date.now() + Math.random() }
     ]);
   }, []);
@@ -87,7 +90,7 @@ const StreamClient = () => {
 
   // WebSocket message handling
   const handleMessage = useCallback(async (message) => {
-    addLog(Received: ${message.type});
+    addLog(`Received: ${message.type}`);
     
     switch (message.type) {
       case 'stream_list':
@@ -99,7 +102,7 @@ const StreamClient = () => {
           note: message.message ?? message.data?.message,
         };
         if (typeof meta.page === 'number') {
-          const metaLine = Streams page ${meta.page}/${meta.total_pages} • total=${meta.total_count}${meta.note ? ' • ' + meta.note : ''};
+          const metaLine = `Streams page ${meta.page}/${meta.total_pages} • total=${meta.total_count}${meta.note ? ' • ' + meta.note : ''}`;
           addLog(metaLine);
         }
         break;
@@ -113,11 +116,11 @@ const StreamClient = () => {
         break;
         
       case 'success':
-        addLog(Success: ${message.data?.message || 'Operation completed'});
+        addLog(`Success: ${message.data?.message || 'Operation completed'}`);
         break;
         
       case 'error':
-        addLog(Error: ${message.error}, 'error');
+        addLog(`Error: ${message.error}`, 'error');
         if (message.stream_id) {
           updateStreamStatus(message.stream_id, 'inactive');
         }
@@ -132,12 +135,12 @@ const StreamClient = () => {
         message.timestamp = new Date().toISOString();
         const jsonMessage = JSON.stringify(message);
         if (jsonMessage.length > 10000) {
-          addLog(Sending large message: ${jsonMessage.length} bytes (${message.type}));
+          addLog(`Sending large message: ${jsonMessage.length} bytes (${message.type})`);
         }
         wsRef.current.send(jsonMessage);
         return true;
       } catch (error) {
-        addLog(Failed to send message: ${error.message}, 'error');
+        addLog(`Failed to send message: ${error.message}`, 'error');
         return false;
       }
     } else {
@@ -160,15 +163,15 @@ const StreamClient = () => {
     const pc = peerConnectionsRef.current.get(streamId);
     if (pc) {
       try {
-        addLog(Setting remote description for stream: ${streamId});
+        addLog(`Setting remote description for stream: ${streamId}`);
         await pc.setRemoteDescription(message.data.answer);
-        addLog(Successfully set remote description for stream: ${streamId});
+        addLog(`Successfully set remote description for stream: ${streamId}`);
       } catch (error) {
-        addLog(Failed to set remote description for ${streamId}: ${error.message}, 'error');
+        addLog(`Failed to set remote description for ${streamId}: ${error.message}`, 'error');
         updateStreamStatus(streamId, 'inactive');
       }
     } else {
-      addLog(No peer connection found for stream: ${streamId}, 'error');
+      addLog(`No peer connection found for stream: ${streamId}`, 'error');
     }
   }, [addLog, updateStreamStatus]);
 
@@ -180,12 +183,12 @@ const StreamClient = () => {
       try {
         const candidate = message.data.candidate || message.data;
         await pc.addIceCandidate(candidate);
-        addLog(Added ICE candidate for stream: ${streamId});
+        addLog(`Added ICE candidate for stream: ${streamId}`);
       } catch (error) {
-        addLog(Failed to add ICE candidate for ${streamId}: ${error.message}, 'error');
+        addLog(`Failed to add ICE candidate for ${streamId}: ${error.message}`, 'error');
       }
     } else {
-      addLog(No peer connection found for ICE candidate: ${streamId}, 'error');
+      addLog(`No peer connection found for ICE candidate: ${streamId}`, 'error');
     }
   }, [addLog]);
 
@@ -196,7 +199,7 @@ const StreamClient = () => {
     let wsUrl = url;
     if (token) {
       const separator = url.includes('?') ? '&' : '?';
-      wsUrl = ${url}${separator}token=${encodeURIComponent(token)}&page=1;
+      wsUrl = `${url}${separator}token=${encodeURIComponent(token)}&page=1`;
     }
 
     addLog('Connecting to ' + wsUrl);
@@ -216,7 +219,7 @@ const StreamClient = () => {
           const message = JSON.parse(event.data);
           handleMessage(message);
         } catch (error) {
-          addLog(Failed to parse message: ${error.message}, 'error');
+          addLog(`Failed to parse message: ${error.message}`, 'error');
         }
       };
 
@@ -233,13 +236,13 @@ const StreamClient = () => {
           case 1006: reason = 'Abnormal closure'; break;
           case 1009: reason = 'Message too large'; break;
           case 1011: reason = 'Server error'; break;
-          default: reason = Code ${event.code};
+          default: reason = `Code ${event.code}`;
         }
-        addLog(WebSocket closed: ${reason}${event.reason ? ' - ' + event.reason : ''});
+        addLog(`WebSocket closed: ${reason}${event.reason ? ' - ' + event.reason : ''}`);
 
         if ([1006, 1011].includes(event.code) && reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
-          addLog(Attempting reconnect ${reconnectAttemptsRef.current}/${maxReconnectAttempts}...);
+          addLog(`Attempting reconnect ${reconnectAttemptsRef.current}/${maxReconnectAttempts}...`);
           setTimeout(() => connect(url, token), 2000 * reconnectAttemptsRef.current);
         }
       };
@@ -249,7 +252,7 @@ const StreamClient = () => {
         console.error('WebSocket error:', error);
       };
     } catch (error) {
-      addLog(Failed to create WebSocket: ${error.message}, 'error');
+      addLog(`Failed to create WebSocket: ${error.message}`, 'error');
     }
   }, [addLog, handleMessage]);
 
@@ -272,7 +275,7 @@ const StreamClient = () => {
 
   // Start stream
   const startStream = useCallback(async (streamId) => {
-    addLog(Starting stream: ${streamId});
+    addLog(`Starting stream: ${streamId}`);
     updateStreamStatus(streamId, 'connecting');
 
     if (!sendMessage({ type: 'stream_start', data: { stream_id: streamId } })) {
@@ -284,9 +287,9 @@ const StreamClient = () => {
     peerConnectionsRef.current.set(streamId, pc);
 
     pc.ontrack = (event) => {
-      addLog(Received track for stream: ${streamId});
-      const video = document.getElementById(video-${streamId});
-      const placeholder = document.getElementById(placeholder-${streamId});
+      addLog(`Received track for stream: ${streamId}`);
+      const video = document.getElementById(`video-${streamId}`);
+      const placeholder = document.getElementById(`placeholder-${streamId}`);
       
       if (!video || !event.streams[0]) return;
 
@@ -300,10 +303,10 @@ const StreamClient = () => {
 
       const tryPlay = () =>
         video.play().then(() => {
-          addLog(Video playing for stream: ${streamId});
+          addLog(`Video playing for stream: ${streamId}`);
           updateStreamStatus(streamId, 'active');
         }).catch(e => {
-          addLog(Video play error: ${e.message}, 'error');
+          addLog(`Video play error: ${e.message}`, 'error');
           updateStreamStatus(streamId, 'inactive');
         });
 
@@ -317,23 +320,23 @@ const StreamClient = () => {
           type: 'ice_candidate',
           data: { stream_id: streamId, candidate: event.candidate.toJSON() }
         });
-        addLog(Sent ICE candidate for ${streamId}: ${event.candidate.type});
+        addLog(`Sent ICE candidate for ${streamId}: ${event.candidate.type}`);
       } else {
-        addLog(ICE gathering complete for ${streamId});
+        addLog(`ICE gathering complete for ${streamId}`);
       }
     };
 
     pc.onicegatheringstatechange = () => {
-      addLog(ICE gathering state for ${streamId}: ${pc.iceGatheringState});
+      addLog(`ICE gathering state for ${streamId}: ${pc.iceGatheringState}`);
     };
 
     pc.onconnectionstatechange = () => {
-      addLog(Connection state for ${streamId}: ${pc.connectionState});
+      addLog(`Connection state for ${streamId}: ${pc.connectionState}`);
       switch (pc.connectionState) {
         case 'connected': updateStreamStatus(streamId, 'active'); break;
         case 'disconnected':
         case 'failed':
-          addLog(Connection ${pc.connectionState} for ${streamId}, 'error');
+          addLog(`Connection ${pc.connectionState} for ${streamId}`, 'error');
           updateStreamStatus(streamId, 'inactive');
           break;
         case 'connecting': updateStreamStatus(streamId, 'connecting'); break;
@@ -341,7 +344,7 @@ const StreamClient = () => {
     };
 
     pc.oniceconnectionstatechange = () => {
-      addLog(ICE connection state for ${streamId}: ${pc.iceConnectionState});
+      addLog(`ICE connection state for ${streamId}: ${pc.iceConnectionState}`);
       if (pc.iceConnectionState === 'failed' && iceServers.iceTransportPolicy !== 'relay') {
         addLog('Retrying with TURN-only (relay) due to ICE failure');
         stopStream(streamId);
@@ -357,12 +360,12 @@ const StreamClient = () => {
       const prefs = chooseCodecs();
       if (prefs && tx.setCodecPreferences) {
         tx.setCodecPreferences(prefs);
-        addLog(Applied codec preferences: ${prefs.map(c => c.mimeType).join(', ')});
+        addLog(`Applied codec preferences: ${prefs.map(c => c.mimeType).join(', ')}`);
       }
 
       const offer = await pc.createOffer({});
       await pc.setLocalDescription(offer);
-      addLog(Created offer for stream: ${streamId} (${offer.sdp.length} chars));
+      addLog(`Created offer for stream: ${streamId} (${offer.sdp.length} chars)`);
 
       const success = sendMessage({
         type: 'webrtc_offer',
@@ -370,14 +373,14 @@ const StreamClient = () => {
       });
 
       if (!success) {
-        addLog(Failed to send offer for ${streamId}, 'error');
+        addLog(`Failed to send offer for ${streamId}`, 'error');
         pc.close();
         peerConnectionsRef.current.delete(streamId);
         updateStreamStatus(streamId, 'inactive');
         return;
       }
     } catch (error) {
-      addLog(Failed to create offer: ${error.message}, 'error');
+      addLog(`Failed to create offer: ${error.message}`, 'error');
       pc.close();
       peerConnectionsRef.current.delete(streamId);
       updateStreamStatus(streamId, 'inactive');
@@ -386,7 +389,7 @@ const StreamClient = () => {
 
   // Stop stream
   const stopStream = useCallback((streamId) => {
-    addLog(Stopping stream: ${streamId});
+    addLog(`Stopping stream: ${streamId}`);
     const pc = peerConnectionsRef.current.get(streamId);
     if (pc) {
       pc.close();
@@ -394,8 +397,8 @@ const StreamClient = () => {
     }
     sendMessage({ type: 'stream_stop', data: { stream_id: streamId } });
 
-    const video = document.getElementById(video-${streamId});
-    const placeholder = document.getElementById(placeholder-${streamId});
+    const video = document.getElementById(`video-${streamId}`);
+    const placeholder = document.getElementById(`placeholder-${streamId}`);
     if (video) { 
       video.srcObject = null; 
       video.style.display = 'none'; 
@@ -413,26 +416,7 @@ const StreamClient = () => {
     }
   };
 
-  // Annotation functions
-  const getApiBase = useCallback(() => {
-    try {
-      const u = new URL(serverUrl);
-      const proto = (u.protocol === 'wss:') ? 'https:' : 'http:';
-      return ${proto}//${u.host};
-    } catch { 
-      return ''; 
-    }
-  }, [serverUrl]);
-
-  const getAuthHeader = useCallback(() => {
-    const token = authToken.trim();
-    return token ? { 'Authorization': Bearer ${token} } : {};
-  }, [authToken]);
-
-  // Annotation toggle and management functions would go here
-  // (Simplified for space - the full annotation functionality would need
-  // canvas handling, drawing functions, etc.)
-
+  // Annotation toggle
   const toggleAnnotate = useCallback((streamId) => {
     setActiveAnnotations(prev => {
       const newSet = new Set(prev);
@@ -453,6 +437,22 @@ const StreamClient = () => {
     };
   }, [disconnect]);
 
+  // ✅ Load token from localStorage on mount
+  useEffect(() => {
+    const token = localStorage.getItem('primusLiteToken');
+    if (token) {
+      setAuthToken(token);
+      addLog('✅ JWT token loaded from localStorage');
+      
+      // ⚠️ Optional: Auto-connect if you want (commented out for safety)
+      // setTimeout(() => {
+      //   connect(serverUrl, token);
+      // }, 1000);
+    } else {
+      addLog('⚠️ No auth token found. Please enter manually or log in again.');
+    }
+  }, [addLog]);
+
   // Initialize
   useEffect(() => {
     addLog('Stream client loaded. Ready to connect.');
@@ -461,6 +461,17 @@ const StreamClient = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600">
       <div className="max-w-6xl mx-auto p-5">
+        
+        {/* ✅ Back Button */}
+        <div className="mb-6 text-center">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="px-5 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8 text-white">
           <h1 className="text-4xl font-bold mb-2">🎥 Primus Stream Client</h1>
@@ -470,7 +481,7 @@ const StreamClient = () => {
         {/* Connection Panel */}
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 mb-8 shadow-xl">
           <div className="flex items-center gap-4 mb-6">
-            <div className={w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse}></div>
+            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
             <span className="font-semibold text-gray-700">{connectionStatus}</span>
           </div>
           
@@ -576,21 +587,21 @@ const StreamCard = ({ stream, status, onStart, onStop, onToggleAnnotate, isAnnot
     <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:-translate-y-2 transition-transform">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-800">{stream.name || 'Camera Stream'}</h3>
-        <span className={px-3 py-1 rounded-full text-xs font-semibold uppercase ${getStatusColor(status)}}>
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${getStatusColor(status)}`}>
           {status}
         </span>
       </div>
       
       <div className="relative w-full h-64 bg-black rounded-lg overflow-hidden mb-4">
         <video
-          id={video-${stream.stream_id}}
+          id={`video-${stream.stream_id}`}
           autoPlay
           playsInline
           muted
           className="w-full h-full object-cover hidden"
         />
         <div
-          id={placeholder-${stream.stream_id}}
+          id={`placeholder-${stream.stream_id}`}
           className="flex items-center justify-center h-full text-gray-400 text-sm text-center p-5"
         >
           Click "Start Stream" to begin viewing
