@@ -10,6 +10,8 @@ import {
   Send,
   ArrowRight,
   Shield,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -25,6 +27,7 @@ const Signup = () => {
   const [messageType, setMessageType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
+  const [isTimeout, setIsTimeout] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -37,29 +40,89 @@ const Signup = () => {
     setMessage(null);
     setMessageType(null);
     setShowResend(false);
+    setIsTimeout(false);
 
     try {
-      const res = await usersAPI.signup(formData);
-      setMessage(res.message || "Account created successfully!");
+      // Transform form data to match your backend schema exactly
+      const backendPayload = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: parseInt(formData.phone) || 0, // Convert to number as required
+        password: formData.password,
+        // Required fields with sensible defaults
+        role: "user",
+        time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+        language: navigator.language?.split('-')[0] || "en",
+        is_verified: false,
+        login_attempts: 0,
+        alert_preferences: {
+          sms: false,
+          email: true, // Default to email notifications
+          whatsapp: false
+        }
+      };
+
+      console.log('Sending signup request with payload:', backendPayload);
+      
+      const res = await usersAPI.signup(backendPayload);
+      
+      setMessage(res.message || "Account created successfully! Please check your email for verification.");
       setMessageType("success");
 
-      setTimeout(() => {
-        navigate("/verify-email", { state: { email: formData.email } });
-      }, 2000);
-
+      // Clear form on success
       setFormData({
         full_name: "",
         email: "",
         phone: "",
         password: "",
       });
-    } catch (err) {
-      const msg =
-        err.response?.data?.message || "Signup failed. Please try again.";
-      setMessage(msg);
-      setMessageType("error");
 
-      if (msg.toLowerCase().includes("already")) {
+      // Navigate to verification page after showing success message
+      setTimeout(() => {
+        navigate("/verify-email", { state: { email: formData.email } });
+      }, 2000);
+
+    } catch (err) {
+      console.error('Signup error:', err);
+      
+      let errorMessage = "Signup failed. Please try again.";
+      
+      // Handle timeout errors specifically
+      if (err.code === 'ECONNABORTED' || err.userMessage?.includes('timeout')) {
+        setIsTimeout(true);
+        errorMessage = "Connection timeout. The server might be starting up. Please wait a moment and try again.";
+        setMessageType("warning");
+      }
+      // Handle user-friendly error messages from interceptor
+      else if (err.userMessage) {
+        errorMessage = err.userMessage;
+        setMessageType("error");
+      }
+      // Handle FastAPI validation errors (422)
+      else if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          errorMessage = err.response.data.detail.map(e => e.msg).join(", ");
+        } else {
+          errorMessage = err.response.data.detail;
+        }
+        setMessageType("error");
+      }
+      // Handle other backend error messages
+      else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+        setMessageType("error");
+      }
+      // Fallback to generic error message
+      else if (err.message) {
+        errorMessage = err.message;
+        setMessageType("error");
+      }
+
+      setMessage(errorMessage);
+
+      // Show resend option if user already exists
+      if (errorMessage.toLowerCase().includes("already") || 
+          errorMessage.toLowerCase().includes("exist")) {
         setShowResend(true);
       }
     } finally {
@@ -82,6 +145,30 @@ const Signup = () => {
         err.response?.data?.message || "Failed to resend verification code."
       );
       setMessageType("error");
+    }
+  };
+
+  const getMessageIcon = () => {
+    switch (messageType) {
+      case 'success':
+        return <CheckCircle size={16} className="text-green-400 flex-shrink-0" />;
+      case 'warning':
+        return <Clock size={16} className="text-yellow-400 flex-shrink-0" />;
+      case 'error':
+      default:
+        return <XCircle size={16} className="text-red-400 flex-shrink-0" />;
+    }
+  };
+
+  const getMessageStyle = () => {
+    switch (messageType) {
+      case 'success':
+        return 'bg-green-500/20 border-green-500/30 text-green-300';
+      case 'warning':
+        return 'bg-yellow-500/20 border-yellow-500/30 text-yellow-300';
+      case 'error':
+      default:
+        return 'bg-red-500/20 border-red-500/30 text-red-300';
     }
   };
 
@@ -156,10 +243,12 @@ const Signup = () => {
             <input
               type="tel"
               name="phone"
-              placeholder="Phone"
+              placeholder="Phone Number (digits only)"
               className="w-full pl-10 pr-3 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all duration-200 backdrop-blur-sm"
               value={formData.phone}
               onChange={handleChange}
+              pattern="[0-9]*"
+              title="Please enter only numbers"
               required
             />
           </div>
@@ -190,7 +279,7 @@ const Signup = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Creating Account...
+                {isTimeout ? 'Waiting for server...' : 'Creating Account...'}
               </>
             ) : (
               <>
@@ -202,17 +291,31 @@ const Signup = () => {
 
           {/* Message Display */}
           {message && (
-            <div className={`p-4 rounded-xl border ${
-              messageType === 'success' 
-                ? 'bg-green-500/20 border-green-500/30 text-green-300' 
-                : 'bg-red-500/20 border-red-500/30 text-red-300'
-            } flex items-center justify-center`}>
-              {messageType === 'success' ? <CheckCircle size={16} className="mr-2" /> : <XCircle size={16} className="mr-2" />}
-              {message}
+            <div className={`p-4 rounded-xl border ${getMessageStyle()} flex items-start space-x-3`}>
+              {getMessageIcon()}
+              <div className="text-sm leading-relaxed">
+                {message}
+                {isTimeout && (
+                  <div className="mt-2 text-xs opacity-80">
+                    Render free tier may take up to 30 seconds to start after being idle.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Resend Code */}
+          {/* Retry Button for Timeouts */}
+          {isTimeout && !loading && (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="w-full py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-yellow-500/30 hover:border-yellow-400/50"
+            >
+              <AlertTriangle size={16} className="mr-2" /> Try Again
+            </button>
+          )}
+
+          {/* Resend Code Button */}
           {showResend && (
             <button
               type="button"
