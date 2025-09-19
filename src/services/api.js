@@ -1,22 +1,22 @@
 import axios from 'axios';
 
-// ✅ FIXED: Removed trailing space + added .trim() for safety
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL 
-  ? process.env.REACT_APP_API_BASE_URL.trim() 
-  : 'https://obex-backend-1.onrender.com/api';
+// ✅ Vite-compatible + No trailing space + Safe fallback
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  ? import.meta.env.VITE_API_BASE_URL.trim() 
+  : 'https://obex-backend-1.onrender.com/api'; // ← NO TRAILING SPACE
 
 console.log('✅ Using API Base URL:', API_BASE_URL);
 
-// Create axios instance with extended timeout for Render cold starts
+// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // 60 seconds for Render free tier cold starts
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request Interceptor — Add token & log requests
+// Request Interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('primusLiteToken');
@@ -37,7 +37,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response Interceptor — Handle errors globally & log responses
+// Response Interceptor
 api.interceptors.response.use(
   (response) => {
     console.log(`✅ API Success [${response.status}]: ${response.config.url}`);
@@ -93,10 +93,8 @@ export const usersAPI = {
 
     try {
       console.log('🔐 Attempting signup...', payload);
-
       const response = await api.post('/users/signup', payload);
 
-      // Handle empty 201 response (common in some FastAPI setups)
       if (!response.data || Object.keys(response.data).length === 0) {
         return {
           success: true,
@@ -106,20 +104,18 @@ export const usersAPI = {
 
       return response.data;
     } catch (error) {
-      // Auto-retry on timeout
       if (error.code === 'ECONNABORTED' && retryCount < maxRetries) {
         console.log(`🔁 Retrying signup (attempt ${retryCount + 1})...`);
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
         return usersAPI.signup(payload, retryCount + 1);
       }
-
-      throw error; // Let UI handle it
+      throw error;
     }
   },
 
   login: async (payload) => {
     const response = await api.post('/users/login', payload);
-    return response.data;
+    return response.data; // ✅ Returns { token, message, user }
   },
 
   verifyEmail: async (payload) => {

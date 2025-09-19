@@ -29,7 +29,7 @@ export default function Dashboard() {
     error: cameraError,
     clearCameraStreams,
     clearError,
-    addCamera // Add this if it exists, or we'll create a local one
+    addCamera
   } = useCameraStore();
 
   const { addEvent } = useEventStore();
@@ -46,47 +46,37 @@ export default function Dashboard() {
 
   const handleModalSave = async (cameraData) => {
     try {
-      // Generate a unique ID for the camera
       const cameraWithId = {
         ...cameraData,
-        id: Date.now().toString(), // Simple ID generation
+        id: Date.now().toString(),
         status: 'active',
         threatLevel: 'Low',
         lastSeen: new Date().toLocaleString(),
         isOnline: true,
-        // Add default properties that CameraCard might expect
         recording: false,
         motionDetected: false
       };
 
       console.log("Adding camera to store:", cameraWithId);
 
-      // Try to use the store's addCamera method if it exists
       if (addCamera && typeof addCamera === 'function') {
         await addCamera(cameraWithId);
       } else {
-        // Fallback: directly update the store state
         const currentState = useCameraStore.getState();
         if (currentState.setCameraStreams && typeof currentState.setCameraStreams === 'function') {
           const updatedCameras = [...(currentState.CameraStreams || []), cameraWithId];
           currentState.setCameraStreams(updatedCameras);
         } else {
-          // If no proper store method exists, we'll need to manually trigger a re-render
-          // This is a workaround - you might need to implement proper store methods
           console.warn("No proper camera store method found. Camera added but may not render immediately.");
         }
       }
 
-      // Close the modal
       setIsModalOpen(false);
-
-      // Show success message
       alert(`Camera "${cameraData.camera_name}" has been added successfully!`);
 
     } catch (error) {
       console.error("Failed to add camera:", error);
       alert(`Failed to add camera: ${error.message || "Unknown error"}`);
-      // Modal stays open so user can try again
     }
   };
 
@@ -139,7 +129,6 @@ export default function Dashboard() {
       try {
         await clearCameraStreams();
 
-        // Add event
         addEvent({
           type: "BULK_DELETE",
           timestamp: new Date().toISOString(),
@@ -167,7 +156,7 @@ export default function Dashboard() {
     const totalCameras = CameraStreams?.length || 0;
     const activeCameras = CameraStreams?.filter(c => c.status === 'active').length || 0;
     const highThreats = CameraStreams?.filter(c => c.threatLevel === 'High').length || 0;
-    const totalEvents = (CameraStreams?.length || 0) * 2; // Simulated event count
+    const totalEvents = (CameraStreams?.length || 0) * 2;
 
     return { totalCameras, activeCameras, highThreats, totalEvents };
   };
@@ -196,8 +185,8 @@ export default function Dashboard() {
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Enhanced Header Section */}
-              <div className="mb-10">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="mb-10">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                 <div className="space-y-3 self-start mr-auto w-full">
                   <div className="flex items-start gap-4">
                     <div>
@@ -219,7 +208,8 @@ export default function Dashboard() {
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
+                  {/* ✅ Updated: Added Primus Stream button beside Add Camera */}
+                  <div className="flex gap-3">
                     <button
                       onClick={() => setIsModalOpen(true)}
                       className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 animate-bounce"
@@ -227,11 +217,24 @@ export default function Dashboard() {
                       <i className="fa-solid fa-plus text-lg"></i>
                       <span className="font-semibold">Add Camera</span>
                     </button>
+
+                    <button
+                      onClick={() => {
+                        console.log("🚀 Primus Stream button clicked!");
+                        alert("Primus Stream feature coming soon!");
+                        // TODO: Replace with your streaming logic
+                      }}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-purple-400/30"
+                    >
+                      <i className="fa-solid fa-satellite-dish text-lg"></i>
+                      <span className="font-semibold hidden sm:inline">Primus Stream</span>
+                      <span className="font-semibold sm:hidden">Stream</span>
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Status Ticker (subtle, auto-scrolling) */}
+              {/* Status Ticker */}
               <div className="relative overflow-hidden mb-6">
                 <div className="whitespace-nowrap text-xs sm:text-sm text-gray-300/80" style={{ animation: 'marquee 18s linear infinite' }}>
                   <span className="mx-4">System Online</span>
@@ -261,7 +264,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Enhanced Search and Controls */}
+            {/* Search and Controls */}
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">
               <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
                 <div className="flex flex-wrap gap-3 flex-1">
@@ -296,7 +299,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Enhanced Camera Streams Section */}
+            {/* Camera Streams Section */}
             {!isLoadingCameras && filteredCameras.length === 0 ? (
               <div className="text-center py-20">
                 <div className="w-32 h-32 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl border border-slate-600/30">
@@ -334,6 +337,7 @@ export default function Dashboard() {
                     </span>
                   </div>
 
+                  {/* ✅ Updated: Added Primus Stream button beside Add Camera */}
                   <div className="flex gap-3">
                     <button
                       onClick={() => setIsModalOpen(true)}
@@ -341,6 +345,19 @@ export default function Dashboard() {
                     >
                       <i className="fa-solid fa-plus text-lg"></i>
                       Add Camera
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        console.log("🚀 Primus Stream button clicked!");
+                        alert("Primus Stream feature coming soon!");
+                        // TODO: Replace with your streaming logic
+                      }}
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-purple-400/30 flex items-center gap-2"
+                    >
+                      <i className="fa-solid fa-satellite-dish text-lg"></i>
+                      <span className="hidden sm:inline">Primus Stream</span>
+                      <span className="sm:hidden">Stream</span>
                     </button>
                   </div>
                 </div>
@@ -354,7 +371,7 @@ export default function Dashboard() {
                   ))}
                 </div>
 
-                {/* Inline Spark KPI for Events */}
+                {/* Inline Spark KPI */}
                 <div className="mt-2">
                   <div className="text-sm text-gray-300">
                     Events {stats.totalEvents}
@@ -368,9 +385,7 @@ export default function Dashboard() {
               </>
             )}
 
-            
-
-            {/* Enhanced Webcam Section */}
+            {/* Webcam Section */}
             {showWebcam && (
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-xl mb-8 relative z-20">
                 <div className="flex items-center justify-between mb-6">
@@ -410,7 +425,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Right-side Rail Counters (icon-only with tooltips) */}
+          {/* Right-side Rail Counters */}
           <div className="hidden xl:block fixed right-6 top-32 z-20 space-y-3">
             <div className="group relative">
               <div className="w-12 h-12 rounded-full bg-slate-800/70 border border-white/10 flex items-center justify-center text-cyan-400 shadow-md">
@@ -450,8 +465,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-
-
-
-

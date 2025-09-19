@@ -20,22 +20,71 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.email || !formData.password) {
+      setMessage("📧 Please enter both email and password.");
+      setMessageType("error");
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
     setMessageType(null);
 
     try {
+      // ✅ This calls POST /users/login with { email, password }
       const res = await usersAPI.login(formData);
-      setMessage(res.message || "Login successful!");
-      setMessageType('success');
 
+      // ✅ Validate token exists
+      if (!res.token) {
+        throw new Error("Authentication failed: No token received.");
+      }
+
+      // ✅ Store JWT token
       localStorage.setItem('primusLiteToken', res.token);
-      // localStorage.setItem('primusLiteUserId', res.data.user._id); //just added the user Id to save, was not there before
-      navigate('/dashboard');
+
+      // ✅ Store user ID if available (from res.user._id)
+      if (res.user?._id) {
+        localStorage.setItem('primusLiteUserId', res.user._id);
+        console.log('✅ Logged in user ID:', res.user._id);
+      }
+
+      // ✅ Success feedback
+      setMessage(res.message || "✅ Login successful! Redirecting...");
+      setMessageType("success");
+
+      // ✅ Redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 2000);
 
     } catch (err) {
-      setMessage(err.response?.data?.message || "Login failed. Please check your credentials.");
-      setMessageType('error');
+      console.error("🔐 Login Error:", err);
+
+      let errorMessage = "❌ Login failed. Please check your credentials.";
+
+      // Handle friendly messages from interceptor (timeouts, network, etc.)
+      if (err.userMessage) {
+        errorMessage = err.userMessage;
+      }
+      // Handle backend validation errors (422)
+      else if (err.response?.status === 422) {
+        errorMessage = "⚠️ Invalid email or password format.";
+      }
+      // Handle wrong credentials (401)
+      else if (err.response?.status === 401) {
+        errorMessage = "🔑 Incorrect email or password.";
+      }
+      // Handle backend error message
+      else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      // Handle no response (network/server down)
+      else if (!err.response) {
+        errorMessage = "🌐 Can't reach server. Check your network or try again later.";
+      }
+
+      setMessage(errorMessage);
+      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -127,12 +176,17 @@ const Login = () => {
 
           {/* Message Display */}
           {message && (
-            <div className={`p-4 rounded-xl border ${messageType === 'success'
-              ? 'bg-green-500/20 border-green-500/30 text-green-300'
-              : 'bg-red-500/20 border-red-500/30 text-red-300'
-              } flex items-center justify-center`}>
-              {messageType === 'success' ? <CheckCircle size={16} className="mr-2" /> : <XCircle size={16} className="mr-2" />}
-              {message}
+            <div className={`p-4 rounded-xl border flex items-start space-x-3 ${
+              messageType === 'success'
+                ? 'bg-green-500/20 border-green-500/30 text-green-300'
+                : 'bg-red-500/20 border-red-500/30 text-red-300'
+            }`}>
+              {messageType === 'success' ? (
+                <CheckCircle size={16} className="mt-0.5 flex-shrink-0" />
+              ) : (
+                <XCircle size={16} className="mt-0.5 flex-shrink-0" />
+              )}
+              <span className="text-sm font-medium">{message}</span>
             </div>
           )}
 
@@ -153,3 +207,5 @@ const Login = () => {
 };
 
 export default Login;
+
+
