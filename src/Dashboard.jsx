@@ -7,6 +7,7 @@ import LogoLoader from './LogoLoader';
 import CameraCard from './CameraCard';
 import PopupModal from './PopupModal';
 import useLoadingStore from './store/loading-store';
+// import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const navigate = useNavigate(); // ✅ ADDED
@@ -223,7 +224,7 @@ export default function Dashboard() {
 
                     <button
                       onClick={() => {
-                        navigate('/primus-stream'); // ✅ NAVIGATE TO STREAM CLIENT
+                        navigate('/StreamClient'); // ✅ NAVIGATE TO STREAM CLIENT
                       }}
                       className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-purple-400/30"
                     >
