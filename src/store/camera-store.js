@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import api, { cameraAPI } from "../services/api";
 
 export const useCameraStore = create((set, get) => ({
   CameraStreams: [],
@@ -28,19 +29,12 @@ export const useCameraStore = create((set, get) => ({
         return [];
       }
 
-      const response = await axios.get(
-        "https://primus-lite.onrender.com/api/cameras/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await cameraAPI.getAllCameras();
 
-      if (response.data && response.data.data) {
+      if (response && response.data) {
+        const list = response.data.data || response.data || [];
         // Transform API data to match component structure
-        const transformedCameras = response.data.data.map(camera => ({
+        const transformedCameras = list.map(camera => ({
           id: camera._id,
           camera_name: camera.camera_name,
           zoneCategory: camera.zone_name,
@@ -126,16 +120,7 @@ export const useCameraStore = create((set, get) => ({
       console.log("🌐 Sending camera payload:", payload);
       console.log("🔑 Token exists:", !!token);
 
-      const response = await axios.post(
-        "https://primus-lite.onrender.com/api/cameras/add",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await cameraAPI.addCamera(payload);
 
       console.log("Camera added successfully:", response.data);
 
@@ -184,15 +169,7 @@ export const useCameraStore = create((set, get) => ({
       const token = localStorage.getItem("primusLiteToken");
 
       if (token) {
-        await axios.delete(
-          `https://primus-lite.onrender.com/api/cameras/${cameraId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        await cameraAPI.deleteCamera(cameraId);
         console.log("Camera deleted from backend");
       }
 
@@ -252,16 +229,7 @@ export const useCameraStore = create((set, get) => ({
       const token = localStorage.getItem("primusLiteToken");
 
       if (token) {
-        const response = await axios.put(
-          `https://primus-lite.onrender.com/api/cameras/${cameraId}`,
-          updates,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await cameraAPI.updateCamera(cameraId, updates);
 
         console.log("Camera updated in backend:", response.data);
       }

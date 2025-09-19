@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // API base configuration
-const API_BASE_URL = 'https://primus-lite.onrender.com/api';
+const API_BASE_URL =
+    import.meta?.env?.VITE_API_BASE_URL?.replace(/\/$/, '') + '/api' ||
+    'https://obex-backend-1.onrender.com/api';
 
 // Create axios instance with default config
 const api = axios.create({
