@@ -31,8 +31,8 @@ export const useCameraStore = create((set, get) => ({
 
       const response = await cameraAPI.getAllCameras();
 
-      if (response && response.data) {
-        const list = response.data.data || response.data || [];
+      if (response) {
+        const list = response.data?.data || response.data || [];
         // Transform API data to match component structure
         const transformedCameras = list.map(camera => ({
           id: camera._id,
@@ -125,26 +125,27 @@ export const useCameraStore = create((set, get) => ({
       console.log("Camera added successfully:", response.data);
 
       // Add the new camera to local store instead of fetching all cameras
+      const created = response.data?.data || response.data;
       const newCamera = {
-        id: response.data.data._id,
-        camera_name: response.data.data.camera_name,
-        zoneCategory: response.data.data.zone_name,
-        date: new Date(response.data.data.createdAt).toISOString().split('T')[0],
-        time: new Date(response.data.data.createdAt).toLocaleTimeString([], {
+        id: created._id || created.id,
+        camera_name: created.camera_name || created.name,
+        zoneCategory: created.zone_name || created.zoneName,
+        date: new Date(created.createdAt || Date.now()).toISOString().split('T')[0],
+        time: new Date(created.createdAt || Date.now()).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
           hour12: false
         }),
-        threatLevel: response.data.data.is_active ? 'Low' : 'High',
-        status: response.data.data.is_active ? 'active' : 'inactive',
-        streamUrl: response.data.data.stream_url,
-        cameraType: response.data.data.camera_type,
-        recordingEnabled: response.data.data.recording_enabled,
-        motionSensitivity: response.data.data.motion_sensitivity,
-        offlineAlertEnabled: response.data.data.offline_alert_enabled,
-        lastStreamCheck: response.data.data.last_stream_check,
-        createdAt: response.data.data.createdAt,
-        updatedAt: response.data.data.updatedAt
+        threatLevel: created.is_active ? 'Low' : 'High',
+        status: created.is_active ? 'active' : 'inactive',
+        streamUrl: created.stream_url || created.streamUrl,
+        cameraType: created.camera_type || created.cameraType,
+        recordingEnabled: created.recording_enabled ?? created.recordingEnabled,
+        motionSensitivity: created.motion_sensitivity ?? created.motionSensitivity,
+        offlineAlertEnabled: created.offline_alert_enabled ?? created.offlineAlertEnabled,
+        lastStreamCheck: created.last_stream_check || created.lastStreamCheck,
+        createdAt: created.createdAt,
+        updatedAt: created.updatedAt
       };
 
       // Add to local store

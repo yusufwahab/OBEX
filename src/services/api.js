@@ -63,14 +63,14 @@ export const cameraAPI = {
 
     // Get single camera
     getSingleCamera: async (cameraId) => {
-        const response = await api.post(`/cameras/${cameraId}`);
+        const response = await api.get(`/cameras/${cameraId}`);
         return response.data;
     },
 
     // Add new camera
     addCamera: async (cameraData) => {
         console.log('📷 Adding camera with data:', cameraData);
-        const response = await api.post('/cameras/add', cameraData);
+        const response = await api.post('/cameras', cameraData);
         return response.data;
     },
 
