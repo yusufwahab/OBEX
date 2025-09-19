@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { usersAPI } from "../services/api";
 import { Mail, Lock, LogIn, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -25,11 +25,11 @@ const Login = () => {
     setMessageType(null);
 
     try {
-      const res = await axios.post("https://primus-lite.onrender.com/api/users/login", formData);
-      setMessage(res.data.message || "Login successful!");
+      const res = await usersAPI.login(formData);
+      setMessage(res.message || "Login successful!");
       setMessageType('success');
 
-      localStorage.setItem('primusLiteToken', res.data.token);
+      localStorage.setItem('primusLiteToken', res.token);
       // localStorage.setItem('primusLiteUserId', res.data.user._id); //just added the user Id to save, was not there before
       navigate('/dashboard');
 

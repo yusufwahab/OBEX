@@ -104,4 +104,20 @@ export const cameraAPI = {
     },
 };
 
+// Users API functions
+export const usersAPI = {
+    signup: async (payload) => {
+        return (await api.post('/users/signup', payload)).data;
+    },
+    login: async (payload) => {
+        return (await api.post('/users/login', payload)).data;
+    },
+    verifyEmail: async (payload) => {
+        return (await api.post('/users/verify-email', payload)).data;
+    },
+    resendCode: async (payload) => {
+        return (await api.post('/users/resend-code', payload)).data;
+    },
+};
+
 export default api;

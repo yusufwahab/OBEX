@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { usersAPI } from "../services/api";
 import { Mail, ShieldCheck, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom"; // 👈 Add this
 
@@ -26,12 +26,9 @@ const VerifyEmail = () => {
     setMessageType(null);
 
     try {
-      const res = await axios.post(
-        "https://primus-lite.onrender.com/api/users/verify-email",
-        formData
-      );
+      const res = await usersAPI.verifyEmail(formData);
 
-      setMessage(res.data.message || "Email verified successfully!");
+      setMessage(res.message || "Email verified successfully!");
       setMessageType("success");
 
       // Optionally clear form

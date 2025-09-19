@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { usersAPI } from "../services/api";
 import {
   User,
   Mail,
@@ -39,11 +39,8 @@ const Signup = () => {
     setShowResend(false);
 
     try {
-      const res = await axios.post(
-        "https://primus-lite.onrender.com/api/users/signup",
-        formData
-      );
-      setMessage(res.data.message || "Account created successfully!");
+      const res = await usersAPI.signup(formData);
+      setMessage(res.message || "Account created successfully!");
       setMessageType("success");
 
       setTimeout(() => {
@@ -72,13 +69,8 @@ const Signup = () => {
 
   const handleResendCode = async () => {
     try {
-      const res = await axios.post(
-        "https://primus-lite.onrender.com/api/users/resend-code",
-        {
-          email: formData.email,
-        }
-      );
-      setMessage(res.data.message || "Verification code resent!");
+      const res = await usersAPI.resendCode({ email: formData.email });
+      setMessage(res.message || "Verification code resent!");
       setMessageType("success");
       setShowResend(false);
 
