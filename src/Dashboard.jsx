@@ -196,19 +196,13 @@ export default function Dashboard() {
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Enhanced Header Section */}
-            <div className="mb-10">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4">
-                    <div className="relative group">
-                      <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110">
-                        <i className="fa-solid fa-video text-white text-xl"></i>
-                      </div>
-                      <div className="absolute inset-0 bg-cyan-400/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
+              <div className="mb-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <div className="space-y-3 self-start mr-auto w-full">
+                  <div className="flex items-start gap-4">
                     <div>
                       <h1 className="text-[24px] sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-                        Security Dashboard
+                        Security Cameras
                       </h1>
                       <p className="text-gray-400 mt-2 text-lg">
                         Real-time monitoring and control center for your security system
@@ -217,7 +211,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 ml-auto">
                   <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-600/30">
                     <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50 animate-pulse"></div>
                     <span className="text-sm text-gray-300 font-medium">
@@ -234,6 +228,19 @@ export default function Dashboard() {
                       <span className="font-semibold">Add Camera</span>
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* Status Ticker (subtle, auto-scrolling) */}
+              <div className="relative overflow-hidden mb-6">
+                <div className="whitespace-nowrap text-xs sm:text-sm text-gray-300/80" style={{ animation: 'marquee 18s linear infinite' }}>
+                  <span className="mx-4">System Online</span>
+                  <span className="mx-2 text-slate-600">•</span>
+                  <span className="mx-4">High alerts: {stats.highThreats}</span>
+                  <span className="mx-2 text-slate-600">•</span>
+                  <span className="mx-4">Active cameras: {stats.activeCameras}/{stats.totalCameras}</span>
+                  <span className="mx-2 text-slate-600">•</span>
+                  <span className="mx-4">Last sync: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
             </div>
@@ -253,61 +260,6 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
-
-            {/* Enhanced Stats Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Total Cameras</p>
-                    <p className="text-3xl font-bold text-white mt-2 group-hover:text-cyan-400 transition-colors duration-300">{stats.totalCameras}</p>
-                    <p className="text-xs text-gray-500 mt-1">Connected devices</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <i className="fa-solid fa-video text-white text-xl"></i>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Active Cameras</p>
-                    <p className="text-3xl font-bold text-emerald-400 mt-2 group-hover:text-emerald-300 transition-colors duration-300">{stats.activeCameras}</p>
-                    <p className="text-xs text-gray-500 mt-1">Live streams</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <i className="fa-solid fa-play text-white text-xl"></i>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">High Threats</p>
-                    <p className="text-3xl font-bold text-red-400 mt-2 group-hover:text-red-300 transition-colors duration-300">{stats.highThreats}</p>
-                    <p className="text-xs text-gray-500 mt-1">Critical alerts</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <i className="fa-solid fa-exclamation-triangle text-white text-xl"></i>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 group">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400 uppercase tracking-wide">Total Events</p>
-                    <p className="text-3xl font-bold text-purple-400 mt-2 group-hover:text-purple-300 transition-colors duration-300">{stats.totalEvents}</p>
-                    <p className="text-xs text-gray-500 mt-1">System activities</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <i className="fa-solid fa-chart-line text-white text-xl"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Enhanced Search and Controls */}
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">
@@ -366,13 +318,6 @@ export default function Dashboard() {
                     <i className="fa-solid fa-plus text-xl"></i>
                     {(CameraStreams?.length || 0) === 0 ? "Add Your First Camera" : "Add New Camera"}
                   </button>
-                  <button
-                    onClick={handleWebcamAccess}
-                    className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-emerald-400/30 flex items-center gap-3"
-                  >
-                    <i className="fa-solid fa-camera text-xl"></i>
-                    Access Webcam
-                  </button>
                 </div>
               </div>
             ) : !isLoadingCameras && (
@@ -397,13 +342,6 @@ export default function Dashboard() {
                       <i className="fa-solid fa-plus text-lg"></i>
                       Add Camera
                     </button>
-                    <button
-                      onClick={handleWebcamAccess}
-                      className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-emerald-400/30 flex items-center gap-2"
-                    >
-                      <i className="fa-solid fa-camera text-lg"></i>
-                      Webcam
-                    </button>
                   </div>
                 </div>
 
@@ -415,8 +353,22 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
+
+                {/* Inline Spark KPI for Events */}
+                <div className="mt-2">
+                  <div className="text-sm text-gray-300">
+                    Events {stats.totalEvents}
+                    <div className="h-6">
+                      <svg viewBox="0 0 100 24" className="w-32 h-6 text-purple-400">
+                        <polyline fill="none" stroke="currentColor" strokeWidth="2" points="0,18 12,16 24,18 36,12 48,14 60,8 72,14 84,10 96,6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
+
+            
 
             {/* Enhanced Webcam Section */}
             {showWebcam && (
@@ -456,6 +408,42 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Right-side Rail Counters (icon-only with tooltips) */}
+          <div className="hidden xl:block fixed right-6 top-32 z-20 space-y-3">
+            <div className="group relative">
+              <div className="w-12 h-12 rounded-full bg-slate-800/70 border border-white/10 flex items-center justify-center text-cyan-400 shadow-md">
+                <i className="fa-solid fa-video"></i>
+              </div>
+              <div className="absolute right-14 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-slate-900/90 text-white text-xs border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                Total: {stats.totalCameras}
+              </div>
+            </div>
+            <div className="group relative">
+              <div className="w-12 h-12 rounded-full bg-slate-800/70 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
+                <i className="fa-solid fa-play"></i>
+              </div>
+              <div className="absolute right-14 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-slate-900/90 text-white text-xs border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                Active: {stats.activeCameras}
+              </div>
+            </div>
+            <div className="group relative">
+              <div className="w-12 h-12 rounded-full bg-slate-800/70 border border-white/10 flex items-center justify-center text-red-400 shadow-md">
+                <i className="fa-solid fa-exclamation-triangle"></i>
+              </div>
+              <div className="absolute right-14 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-slate-900/90 text-white text-xs border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                High: {stats.highThreats}
+              </div>
+            </div>
+            <div className="group relative">
+              <div className="w-12 h-12 rounded-full bg-slate-800/70 border border-white/10 flex items-center justify-center text-purple-400 shadow-md">
+                <i className="fa-solid fa-chart-line"></i>
+              </div>
+              <div className="absolute right-14 top-1/2 -translate-y-1/2 px-3 py-1 rounded bg-slate-900/90 text-white text-xs border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                Events: {stats.totalEvents}
+              </div>
+            </div>
           </div>
         </div>
       )}
