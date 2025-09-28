@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { usersAPI } from "../services/api";
+import obexLogo from '../obex-logo-noText.png'; // Ensure the path is correct
 import {
   User,
   Mail,
@@ -200,8 +201,8 @@ const Signup = () => {
         >
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-500/30">
-              <Shield className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-gradient-to-r from-cyan-900 to-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cyan-100/10">
+              <img src={obexLogo} alt="OBEX Logo" className="w-10 h-10 lg:w-10 lg:h-10 xl:w-15 xl:h-15"></img> 
             </div>
             <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2 tracking-wide">
               Create Account

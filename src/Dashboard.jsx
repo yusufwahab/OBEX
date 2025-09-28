@@ -194,92 +194,92 @@ export default function Dashboard() {
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/5 to-blue-500/5 rounded-full blur-3xl animate-ping"></div>
           </div>
 
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
             {/* Enhanced Header Section */}
-              <div className="mb-10">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div className="space-y-3 self-start mr-auto w-full">
+            <div className="mb-8 sm:mb-10 lg:mb-12">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
+                <div className="space-y-3 sm:space-y-4 self-start mr-auto w-full">
                   <div className="flex items-start gap-4">
                     <div>
-                      <h1 className="text-[24px] sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent leading-tight">
                         Security Cameras
                       </h1>
-                      <p className="text-gray-400 mt-2 text-lg">
+                      <p className="text-gray-400 mt-2 sm:mt-3 text-base sm:text-lg lg:text-xl">
                         Real-time monitoring and control center for your security system
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 ml-auto">
-                  <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-600/30">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 ml-auto">
+                  <div className="flex items-center gap-3 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl border border-slate-600/30">
                     <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50 animate-pulse"></div>
-                    <span className="text-sm text-gray-300 font-medium">
+                    <span className="text-sm sm:text-base text-gray-300 font-medium">
                       System Online
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 animate-bounce"
+                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 sm:px-10 lg:px-12 py-3 sm:py-4 rounded-xl flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 whitespace-nowrap min-w-0"
                     >
-                      <i className="fa-solid fa-plus text-lg"></i>
-                      <span className="font-semibold">Add Camera</span>
+                      <i className="fa-solid fa-plus text-lg shrink-0"></i>
+                      <span className="font-semibold text-sm sm:text-base shrink-0">Add Camera</span>
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Status Ticker (subtle, auto-scrolling) */}
-              <div className="relative overflow-hidden mb-6">
+              <div className="relative overflow-hidden mt-6 sm:mt-8">
                 <div className="whitespace-nowrap text-xs sm:text-sm text-gray-300/80" style={{ animation: 'marquee 18s linear infinite' }}>
-                  <span className="mx-4">System Online</span>
+                  <span className="mx-4 sm:mx-6">System Online</span>
                   <span className="mx-2 text-slate-600">•</span>
-                  <span className="mx-4">High alerts: {stats.highThreats}</span>
+                  <span className="mx-4 sm:mx-6">High alerts: {stats.highThreats}</span>
                   <span className="mx-2 text-slate-600">•</span>
-                  <span className="mx-4">Active cameras: {stats.activeCameras}/{stats.totalCameras}</span>
+                  <span className="mx-4 sm:mx-6">Active cameras: {stats.activeCameras}/{stats.totalCameras}</span>
                   <span className="mx-2 text-slate-600">•</span>
-                  <span className="mx-4">Last sync: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="mx-4 sm:mx-6">Last sync: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
             </div>
 
             {/* Error Display */}
             {cameraError && (
-              <div className="mb-6 bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-500/30 rounded-xl p-4">
-                <div className="flex items-center gap-3">
-                  <i className="fa-solid fa-exclamation-triangle text-red-400"></i>
-                  <p className="text-red-300">{cameraError}</p>
+              <div className="mb-6 sm:mb-8 bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-500/30 rounded-xl p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <i className="fa-solid fa-exclamation-triangle text-red-400 text-lg sm:text-xl"></i>
+                  <p className="text-red-300 text-sm sm:text-base">{cameraError}</p>
                   <button
                     onClick={clearError}
-                    className="ml-auto text-red-400 hover:text-red-300"
+                    className="ml-auto text-red-400 hover:text-red-300 p-1"
                   >
-                    <i className="fa-solid fa-times"></i>
+                    <i className="fa-solid fa-times text-lg"></i>
                   </button>
                 </div>
               </div>
             )}
 
             {/* Enhanced Search and Controls */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">
-              <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-                <div className="flex flex-wrap gap-3 flex-1">
-                  <div className="relative flex-1 min-w-[280px]">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-2xl border border-white/10 shadow-xl mb-8 sm:mb-10">
+              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 items-center justify-between">
+                <div className="flex flex-wrap gap-3 sm:gap-4 flex-1 w-full">
+                  <div className="relative flex-1 min-w-[280px] sm:min-w-[320px]">
                     <i className="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     <input
                       type="text"
                       placeholder="Search cameras by name..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white placeholder-gray-400 border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm"
+                      className="w-full pl-12 pr-4 py-3 sm:py-4 bg-gradient-to-r from-slate-700 to-slate-800 text-white placeholder-gray-400 border border-slate-600/50 focus:border-cyan-400/50 rounded-xl focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm text-sm sm:text-base"
                     />
                   </div>
 
                   <button
                     onClick={handleClearAll}
                     disabled={CameraStreams?.length === 0}
-                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 flex items-center gap-2 sm:gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base whitespace-nowrap"
                   >
                     <i className="fa-solid fa-trash text-lg"></i>
                     <span className="hidden sm:inline">Clear All</span>
@@ -290,30 +290,30 @@ export default function Dashboard() {
 
             {/* Loading State */}
             {isLoadingCameras && (
-              <div className="text-center py-20">
-                <div className="w-16 h-16 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-white text-lg">Loading cameras...</p>
+              <div className="text-center py-16 sm:py-20 lg:py-24">
+                <div className="w-16 h-16 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin mx-auto mb-6"></div>
+                <p className="text-white text-lg sm:text-xl">Loading cameras...</p>
               </div>
             )}
 
             {/* Enhanced Camera Streams Section */}
             {!isLoadingCameras && filteredCameras.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="w-32 h-32 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl border border-slate-600/30">
+              <div className="text-center py-16 sm:py-20 lg:py-24">
+                <div className="w-32 h-32 bg-gradient-to-r from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-8 sm:mb-10 shadow-2xl border border-slate-600/30">
                   <i className="fa-solid fa-video text-slate-400 text-5xl"></i>
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-4">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">
                   {(CameraStreams?.length || 0) === 0 ? "No Cameras Connected" : "No cameras match your search"}
                 </h2>
-                <p className="text-gray-400 text-lg max-w-md mx-auto mb-8">
+                <p className="text-gray-400 text-base sm:text-lg lg:text-xl max-w-md mx-auto mb-8 sm:mb-10 leading-relaxed">
                   {(CameraStreams?.length || 0) === 0
                     ? "Get started by adding your first security camera to begin monitoring your premises."
                     : `No cameras found matching "${searchTerm}". Try adjusting your search term.`}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-3"
+                    className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-3 text-sm sm:text-base"
                   >
                     <i className="fa-solid fa-plus text-xl"></i>
                     {(CameraStreams?.length || 0) === 0 ? "Add Your First Camera" : "Add New Camera"}
@@ -323,21 +323,21 @@ export default function Dashboard() {
             ) : !isLoadingCameras && (
               <>
                 {/* Live Feed Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <i className="fa-solid fa-broadcast-tower text-white text-lg"></i>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-8 sm:mb-10">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-broadcast-tower text-white text-lg sm:text-xl"></i>
                     </div>
-                    <h2 className="text-2xl font-bold text-white">Live Camera Feeds</h2>
-                    <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold rounded-full shadow-lg">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Live Camera Feeds</h2>
+                    <span className="px-3 sm:px-4 py-1 sm:py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm sm:text-base font-semibold rounded-full shadow-lg">
                       {filteredCameras.length} Active
                     </span>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 sm:gap-4">
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-2"
+                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-cyan-400/30 flex items-center gap-2 sm:gap-3 text-sm sm:text-base whitespace-nowrap"
                     >
                       <i className="fa-solid fa-plus text-lg"></i>
                       Add Camera
@@ -346,7 +346,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Camera Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-8 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-10 sm:mb-12">
                   {filteredCameras.map((camera, index) => (
                     <div key={camera.id || index} className="w-full">
                       <CameraCard {...camera} />
@@ -355,10 +355,10 @@ export default function Dashboard() {
                 </div>
 
                 {/* Inline Spark KPI for Events */}
-                <div className="mt-2">
-                  <div className="text-sm text-gray-300">
+                <div className="mt-4 sm:mt-6">
+                  <div className="text-sm sm:text-base text-gray-300">
                     Events {stats.totalEvents}
-                    <div className="h-6">
+                    <div className="h-6 mt-2">
                       <svg viewBox="0 0 100 24" className="w-32 h-6 text-purple-400">
                         <polyline fill="none" stroke="currentColor" strokeWidth="2" points="0,18 12,16 24,18 36,12 48,14 60,8 72,14 84,10 96,6" />
                       </svg>
@@ -368,27 +368,25 @@ export default function Dashboard() {
               </>
             )}
 
-            
-
             {/* Enhanced Webcam Section */}
             {showWebcam && (
-              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-xl mb-8 relative z-20">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <i className="fa-solid fa-camera text-white text-lg"></i>
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 lg:p-10 border border-white/10 shadow-xl mb-8 sm:mb-10 relative z-20">
+                <div className="flex items-center justify-between mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <i className="fa-solid fa-camera text-white text-lg sm:text-xl"></i>
                     </div>
-                    <h3 className="text-2xl font-bold text-white">Webcam Access</h3>
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Webcam Access</h3>
                   </div>
                   <button
                     onClick={closeWebcam}
-                    className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30"
+                    className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-red-400/30 text-sm sm:text-base"
                   >
                     <i className="fa-solid fa-times text-lg"></i>
                   </button>
                 </div>
 
-                <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-2xl p-6 border border-slate-600/30 shadow-2xl">
+                <div className="bg-gradient-to-br from-slate-900/80 to-slate-800/80 rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-600/30 shadow-2xl">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -401,7 +399,7 @@ export default function Dashboard() {
                     <div className="w-full h-64 md:h-80 lg:h-96 rounded-xl border border-slate-600/50 bg-slate-800 flex items-center justify-center">
                       <div className="text-center text-slate-400">
                         <i className="fa-solid fa-camera text-4xl mb-4"></i>
-                        <p>Initializing webcam...</p>
+                        <p className="text-base sm:text-lg">Initializing webcam...</p>
                       </div>
                     </div>
                   )}
@@ -411,7 +409,7 @@ export default function Dashboard() {
           </div>
 
           {/* Right-side Rail Counters (icon-only with tooltips) */}
-          <div className="hidden xl:block fixed right-6 top-32 z-20 space-y-3">
+          <div className="hidden xl:block fixed right-6 top-40 z-20 space-y-4">
             <div className="group relative">
               <div className="w-12 h-12 rounded-full bg-slate-800/70 border border-white/10 flex items-center justify-center text-cyan-400 shadow-md">
                 <i className="fa-solid fa-video"></i>
@@ -450,8 +448,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-
-
-
-
