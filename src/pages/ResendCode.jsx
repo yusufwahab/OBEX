@@ -1,1 +1,120 @@
-import React, { useState } from \"react\";\nimport { usersAPI } from \"../services/api\";\nimport { Mail, Send, CheckCircle, XCircle, RefreshCw } from \"lucide-react\";\nimport { useNavigate, Link } from \"react-router-dom\";\n\nconst ResendCode = () => {\n  const [email, setEmail] = useState(\"\");\n  const [message, setMessage] = useState(null);\n  const [messageType, setMessageType] = useState(null);\n  const [loading, setLoading] = useState(false);\n  const navigate = useNavigate();\n\n  const handleSubmit = async (e) => {\n    e.preventDefault();\n    if (!email) {\n      setMessage(\"📧 Please enter your email address.\");\n      setMessageType(\"error\");\n      return;\n    }\n\n    setLoading(true);\n    setMessage(null);\n\n    try {\n      const res = await usersAPI.resendCode({ email });\n      setMessage(res.message || \"✅ Verification code sent! Check your email.\");\n      setMessageType(\"success\");\n      \n      setTimeout(() => {\n        navigate(\"/verify-email\", { state: { email } });\n      }, 2000);\n    } catch (err) {\n      let errorMessage = \"❌ Failed to resend code. Try again.\";\n      \n      if (err.userMessage) {\n        errorMessage = err.userMessage;\n      } else if (err.response?.data?.message) {\n        errorMessage = err.response.data.message;\n      }\n      \n      setMessage(errorMessage);\n      setMessageType(\"error\");\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <div className=\"min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center p-4 relative overflow-hidden\">\n      <div className=\"absolute inset-0\">\n        <div className=\"absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse\"></div>\n      </div>\n\n      <div className=\"relative z-10 w-full max-w-md\">\n        <form\n          onSubmit={handleSubmit}\n          className=\"bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-8 rounded-3xl border border-white/20 shadow-xl space-y-6\"\n        >\n          <h2 className=\"text-3xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500\">\n            Resend Code\n          </h2>\n\n          <div className=\"relative group\">\n            <Mail className=\"absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400\" size={20} />\n            <input\n              type=\"email\"\n              placeholder=\"Your email\"\n              value={email}\n              onChange={(e) => setEmail(e.target.value)}\n              required\n              className=\"w-full pl-10 pr-3 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50\"\n            />\n          </div>\n\n          <button\n            type=\"submit\"\n            disabled={loading}\n            className=\"w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg transition disabled:opacity-50 flex items-center justify-center\"\n          >\n            {loading ? (\n              <>\n                <RefreshCw className=\"animate-spin mr-2\" size={20} />\n                Sending...\n              </>\n            ) : (\n              <>\n                <Send size={20} className=\"mr-2\" />\n                Resend Code\n              </>\n            )}\n          </button>\n\n          {message && (\n            <div\n              className={`p-3 rounded-xl border flex items-start space-x-2 ${\n                messageType === \"success\"\n                  ? \"bg-green-500/20 border-green-500/30 text-green-300\"\n                  : \"bg-red-500/20 border-red-500/30 text-red-300\"\n              }`}\n            >\n              {messageType === \"success\" ? <CheckCircle size={16} /> : <XCircle size={16} />}\n              <span className=\"text-sm\">{message}</span>\n            </div>\n          )}\n\n          <div className=\"text-center\">\n            <Link\n              to=\"/login\"\n              className=\"text-cyan-400 text-sm hover:text-cyan-300 transition\"\n            >\n              ← Back to Login\n            </Link>\n          </div>\n        </form>\n      </div>\n    </div>\n  );\n};\n\nexport default ResendCode;\n
+import React, { useState } from "react";
+import { usersAPI } from "../services/api";
+import { Mail, Send, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+
+const ResendCode = () => {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState(null);
+  const [messageType, setMessageType] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setMessage("📧 Please enter your email address.");
+      setMessageType("error");
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await usersAPI.resendCode({ email });
+      setMessage(res.message || "✅ Verification code sent! Check your email.");
+      setMessageType("success");
+      
+      setTimeout(() => {
+        navigate("/verify-email", { state: { email } });
+      }, 2000);
+    } catch (err) {
+      let errorMessage = "❌ Failed to resend code. Try again.";
+      
+      if (err.userMessage) {
+        errorMessage = err.userMessage;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      
+      setMessage(errorMessage);
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-8 rounded-3xl border border-white/20 shadow-xl space-y-6"
+        >
+          <h2 className="text-3xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+            Resend Code
+          </h2>
+
+          <div className="relative group">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400" size={20} />
+            <input
+              type="email"
+              placeholder="Your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full pl-10 pr-3 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg transition disabled:opacity-50 flex items-center justify-center"
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="animate-spin mr-2" size={20} />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send size={20} className="mr-2" />
+                Resend Code
+              </>
+            )}
+          </button>
+
+          {message && (
+            <div
+              className={`p-3 rounded-xl border flex items-start space-x-2 ${
+                messageType === "success"
+                  ? "bg-green-500/20 border-green-500/30 text-green-300"
+                  : "bg-red-500/20 border-red-500/30 text-red-300"
+              }`}
+            >
+              {messageType === "success" ? <CheckCircle size={16} /> : <XCircle size={16} />}
+              <span className="text-sm">{message}</span>
+            </div>
+          )}
+
+          <div className="text-center">
+            <Link
+              to="/login"
+              className="text-cyan-400 text-sm hover:text-cyan-300 transition"
+            >
+              ← Back to Login
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ResendCode;
