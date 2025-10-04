@@ -8,10 +8,22 @@ const ForgotPassword = () => {
   const [messageType, setMessageType] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!email) {
       setMessage("📧 Please enter your email address.");
+      setMessageType("error");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setMessage("❌ Please enter a valid email address.");
       setMessageType("error");
       return;
     }
@@ -20,14 +32,20 @@ const ForgotPassword = () => {
     setMessage(null);
 
     try {
-      console.log('🔄 Sending forgot password request for:', email);
+      const payload = { email: email.trim().toLowerCase() };
       
-      const res = await usersAPI.forgotPassword({ email });
+      console.log('🔄 Sending forgot password request:', {
+        original_email: email,
+        cleaned_email: payload.email,
+        payload: payload
+      });
+      
+      const res = await usersAPI.forgotPassword(payload);
       
       console.log('✅ Forgot password response:', {
         status: 'success',
         data: res,
-        email: email
+        email: payload.email
       });
       
       setMessage(res.message || "✅ If your email is registered, a reset link has been sent.");
@@ -45,9 +63,16 @@ const ForgotPassword = () => {
       let errorMessage = "❌ Something went wrong. Try again.";
       
       if (err.response?.status === 404) {
-        errorMessage = "❌ Email not found. Please check your email address.";
+        errorMessage = "❌ Email not found in system. Please check your email or sign up first.";
       } else if (err.response?.status === 400) {
-        errorMessage = "❌ Invalid email format.";
+        errorMessage = "❌ Backend validation error. Check browser console for details. Try different email or contact support.";
+      } else if (err.response?.status === 422) {
+        const details = err.response?.data?.detail;
+        if (Array.isArray(details)) {
+          errorMessage = `❌ Validation: ${details.map(d => d.msg).join(', ')}`;
+        } else {
+          errorMessage = `❌ Validation error: ${details || 'Unknown validation issue'}`;
+        }
       } else if (err.userMessage) {
         errorMessage = err.userMessage;
       } else if (err.response?.data?.message) {
