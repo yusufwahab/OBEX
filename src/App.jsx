@@ -29,7 +29,7 @@ export default function App() {
 
         {/* Forgot/Reset Password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/resend-code" element={<ResendCode />} />
 
         {/* Main App - Protected Routes */}

@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usersAPI } from "../services/api";
 import { Lock, CheckCircle, XCircle, Key } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const ResetPassword = () => {
-  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState(null);
@@ -12,8 +13,22 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!token) {
+      setMessage("❌ Invalid reset link. Please request a new password reset.");
+      setMessageType("error");
+    }
+  }, [token]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!token) {
+      setMessage("❌ Invalid reset link. Please request a new password reset.");
+      setMessageType("error");
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
