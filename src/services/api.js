@@ -24,10 +24,11 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log(`📡 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`📡 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     if (config.data) {
-      console.log('📦 Payload:', config.data);
+      console.log('📦 Request Payload:', JSON.stringify(config.data, null, 2));
     }
+    console.log('📝 Request Headers:', config.headers);
 
     return config;
   },
@@ -40,9 +41,10 @@ api.interceptors.request.use(
 // Response Interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ API Success [${response.status}]: ${response.config.url}`);
+    console.log(`✅ API Success [${response.status}]: ${response.config.method?.toUpperCase()} ${response.config.url}`);
+    console.log('📥 Response Headers:', response.headers);
     if (response.data) {
-      console.log('📥 Response data:', response.data);
+      console.log('📥 Response Data:', JSON.stringify(response.data, null, 2));
     }
     return response;
   },

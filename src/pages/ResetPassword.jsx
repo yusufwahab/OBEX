@@ -48,15 +48,29 @@ const ResetPassword = () => {
     setMessage(null);
 
     try {
-      console.log('🔄 Resetting password with:', { email, token: token?.substring(0, 10) + '...', password_length: newPassword.length });
+      console.log('🔄 Resetting password with:', { 
+        email, 
+        token: token?.substring(0, 10) + '...', 
+        password_length: newPassword.length,
+        full_token: token
+      });
       
-      const res = await usersAPI.resetPassword({ 
+      const payload = {
         email: email,
         token: token,
         new_password: newPassword 
-      });
+      };
       
-      console.log('✅ Reset password response:', res);
+      console.log('📦 Reset password payload:', payload);
+      
+      const res = await usersAPI.resetPassword(payload);
+      
+      console.log('✅ Reset password response:', {
+        status: 'success',
+        data: res,
+        email: email,
+        token_used: token?.substring(0, 10) + '...'
+      });
       
       setMessage(res.message || "✅ Password reset successfully! You can now login with your new password.");
       setMessageType("success");
@@ -68,7 +82,15 @@ const ResetPassword = () => {
       
       setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      console.error('❌ Reset password error:', err);
+      console.error('❌ Reset password error for email:', email, {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message,
+        userMessage: err.userMessage,
+        token_used: token?.substring(0, 10) + '...',
+        fullError: err
+      });
       
       let errorMessage = "❌ Reset failed. Try again.";
       
@@ -76,6 +98,8 @@ const ResetPassword = () => {
         errorMessage = "❌ Invalid or expired reset token. Please request a new password reset.";
       } else if (err.response?.status === 404) {
         errorMessage = "❌ User not found. Please check your email address.";
+      } else if (err.response?.status === 422) {
+        errorMessage = "❌ Validation error. Check your input data.";
       } else if (err.userMessage) {
         errorMessage = err.userMessage;
       } else if (err.response?.data?.message) {

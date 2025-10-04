@@ -20,16 +20,42 @@ const ForgotPassword = () => {
     setMessage(null);
 
     try {
+      console.log('🔄 Sending forgot password request for:', email);
+      
       const res = await usersAPI.forgotPassword({ email });
+      
+      console.log('✅ Forgot password response:', {
+        status: 'success',
+        data: res,
+        email: email
+      });
+      
       setMessage(res.message || "✅ If your email is registered, a reset link has been sent.");
       setMessageType("success");
     } catch (err) {
+      console.error('❌ Forgot password error for email:', email, {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message,
+        userMessage: err.userMessage,
+        fullError: err
+      });
+      
       let errorMessage = "❌ Something went wrong. Try again.";
       
-      if (err.userMessage) {
+      if (err.response?.status === 404) {
+        errorMessage = "❌ Email not found. Please check your email address.";
+      } else if (err.response?.status === 400) {
+        errorMessage = "❌ Invalid email format.";
+      } else if (err.userMessage) {
         errorMessage = err.userMessage;
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
+      } else if (err.response?.data?.detail) {
+        errorMessage = Array.isArray(err.response.data.detail) 
+          ? err.response.data.detail.map(e => e.msg).join(', ')
+          : err.response.data.detail;
       }
       
       setMessage(errorMessage);
