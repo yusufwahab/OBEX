@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { usersAPI } from "../services/api";
+import useAuthStore from "../store/auth-store";
 import { Mail, Lock, LogIn, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
@@ -13,6 +14,7 @@ const Login = () => {
   const [messageType, setMessageType] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuthStore();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -39,14 +41,8 @@ const Login = () => {
         throw new Error("Authentication failed: No token received.");
       }
 
-      // ✅ Store JWT token
-      localStorage.setItem('primusLiteToken', res.token);
-
-      // ✅ Store user ID if available (from res.user._id)
-      if (res.user?._id) {
-        localStorage.setItem('primusLiteUserId', res.user._id);
-        console.log('✅ Logged in user ID:', res.user._id);
-      }
+      // ✅ Store in auth store and localStorage
+      login(res.token, res.user);
 
       // ✅ Success feedback
       setMessage(res.message || "✅ Login successful! Redirecting...");
@@ -151,6 +147,16 @@ const Login = () => {
               required
             />
           </div>
+
+               <div className="text-right">
+  <Link
+    to="/forgot-password"
+    className="text-cyan-400 text-sm hover:text-cyan-300 transition"
+  >
+    Forgot Password?
+  </Link>
+</div>
+
 
           {/* Submit Button */}
           <button

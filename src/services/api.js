@@ -115,7 +115,7 @@ export const usersAPI = {
 
   login: async (payload) => {
     const response = await api.post('/users/login', payload);
-    return response.data; // ✅ Returns { token, message, user }
+    return response.data;
   },
 
   verifyEmail: async (payload) => {
@@ -124,10 +124,38 @@ export const usersAPI = {
   },
 
   resendCode: async (payload) => {
-    const response = await api.post('/users/resend-code', payload);
+    const response = await api.post('/users/resend-verification', payload);
     return response.data;
   },
+
+  forgotPassword: async (payload) => {
+    const response = await api.post('/users/forgot-password', payload);
+    return response.data;
+  },
+
+  resetPassword: async (payload) => {
+    const response = await api.post('/users/reset-password', payload);
+    return response.data;
+  },
+
+  getProfile: async () => {
+    const response = await api.get('/users/profile');
+    return response.data;
+  },
+
+  updateProfile: async (payload) => {
+    const response = await api.put('/users/profile', payload);
+    return response.data;
+  }
 };
+
+
+    
+
+
+
+
+
 
 // ======================
 // CAMERA API

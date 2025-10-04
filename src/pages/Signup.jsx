@@ -43,23 +43,12 @@ const Signup = () => {
     setIsTimeout(false);
 
     try {
-      // Transform form data to match your backend schema exactly
+      // Transform form data to match backend schema
       const backendPayload = {
         full_name: formData.full_name,
         email: formData.email,
-        phone: parseInt(formData.phone) || 0, // Convert to number as required
-        password: formData.password,
-        // Required fields with sensible defaults
-        role: "user",
-        time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-        language: navigator.language?.split('-')[0] || "en",
-        is_verified: false,
-        login_attempts: 0,
-        alert_preferences: {
-          sms: false,
-          email: true, // Default to email notifications
-          whatsapp: false
-        }
+        phone: formData.phone,
+        password: formData.password
       };
 
       console.log('Sending signup request with payload:', backendPayload);
