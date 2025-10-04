@@ -33,8 +33,12 @@ const Login = () => {
     setMessageType(null);
 
     try {
+      console.log('🔐 Attempting login with:', { email: formData.email, password_length: formData.password.length });
+      
       // ✅ This calls POST /users/login with { email, password }
       const res = await usersAPI.login(formData);
+      
+      console.log('✅ Login response:', { ...res, token: res.token ? 'TOKEN_RECEIVED' : 'NO_TOKEN' });
 
       // ✅ Validate token exists
       if (!res.token) {
@@ -54,7 +58,12 @@ const Login = () => {
       }, 2000);
 
     } catch (err) {
-      console.error("🔐 Login Error:", err);
+      console.error("🔐 Login Error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+        userMessage: err.userMessage
+      });
 
       let errorMessage = "❌ Login failed. Please check your credentials.";
 
@@ -68,11 +77,17 @@ const Login = () => {
       }
       // Handle wrong credentials (401)
       else if (err.response?.status === 401) {
-        errorMessage = "🔑 Incorrect email or password.";
+        errorMessage = "🔑 Invalid email or password. If you recently reset your password, please try the new password.";
       }
       // Handle backend error message
       else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
+      }
+      // Handle FastAPI validation errors
+      else if (err.response?.data?.detail) {
+        errorMessage = Array.isArray(err.response.data.detail) 
+          ? err.response.data.detail.map(e => e.msg).join(', ')
+          : err.response.data.detail;
       }
       // Handle no response (network/server down)
       else if (!err.response) {

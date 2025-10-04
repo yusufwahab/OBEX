@@ -8,6 +8,7 @@ const ResetPassword = () => {
   const token = searchParams.get('token');
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -29,26 +30,58 @@ const ResetPassword = () => {
       return;
     }
 
+    if (newPassword !== confirmPassword) {
+      setMessage("❌ Passwords do not match.");
+      setMessageType("error");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setMessage("❌ Password must be at least 6 characters long.");
+      setMessageType("error");
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
     try {
+      console.log('🔄 Resetting password with:', { email, token: token?.substring(0, 10) + '...', password_length: newPassword.length });
+      
       const res = await usersAPI.resetPassword({ 
         email, 
         token, 
         new_password: newPassword 
       });
       
-      setMessage(res.message || "✅ Password reset successfully! Redirecting to login...");
+      console.log('✅ Reset password response:', res);
+      
+      setMessage(res.message || "✅ Password reset successfully! You can now login with your new password.");
       setMessageType("success");
-      setTimeout(() => navigate("/login"), 2000);
+      
+      // Clear form
+      setEmail("");
+      setNewPassword("");
+      setConfirmPassword("");
+      
+      setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
+      console.error('❌ Reset password error:', err);
+      
       let errorMessage = "❌ Reset failed. Try again.";
       
-      if (err.userMessage) {
+      if (err.response?.status === 400) {
+        errorMessage = "❌ Invalid or expired reset token. Please request a new password reset.";
+      } else if (err.response?.status === 404) {
+        errorMessage = "❌ User not found. Please check your email address.";
+      } else if (err.userMessage) {
         errorMessage = err.userMessage;
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
+      } else if (err.response?.data?.detail) {
+        errorMessage = Array.isArray(err.response.data.detail) 
+          ? err.response.data.detail.map(e => e.msg).join(', ')
+          : err.response.data.detail;
       }
       
       setMessage(errorMessage);
@@ -92,6 +125,18 @@ const ResetPassword = () => {
               placeholder="New password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              required
+              className="w-full pl-10 pr-3 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+            />
+          </div>
+
+          <div className="relative group">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400" size={20} />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
               className="w-full pl-10 pr-3 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
             />
