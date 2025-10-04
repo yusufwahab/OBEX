@@ -65,7 +65,13 @@ const ForgotPassword = () => {
       if (err.response?.status === 404) {
         errorMessage = "❌ Email not found in system. Please check your email or sign up first.";
       } else if (err.response?.status === 400) {
-        errorMessage = "❌ Backend validation error. Check browser console for details. Try different email or contact support.";
+        const detail = err.response?.data?.detail;
+        if (detail && detail.includes('already sent')) {
+          errorMessage = "ℹ️ Reset link already sent! Check your email or wait a few minutes before requesting again.";
+          setMessageType("success");
+        } else {
+          errorMessage = "❌ Backend validation error. Check browser console for details.";
+        }
       } else if (err.response?.status === 422) {
         const details = err.response?.data?.detail;
         if (Array.isArray(details)) {
@@ -78,13 +84,21 @@ const ForgotPassword = () => {
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.response?.data?.detail) {
-        errorMessage = Array.isArray(err.response.data.detail) 
-          ? err.response.data.detail.map(e => e.msg).join(', ')
-          : err.response.data.detail;
+        const detail = err.response.data.detail;
+        if (typeof detail === 'string' && detail.includes('already sent')) {
+          errorMessage = "ℹ️ Reset link already sent! Check your email or wait before requesting again.";
+          setMessageType("success");
+        } else {
+          errorMessage = Array.isArray(detail) 
+            ? detail.map(e => e.msg).join(', ')
+            : detail;
+        }
       }
       
       setMessage(errorMessage);
-      setMessageType("error");
+      if (messageType !== "success") {
+        setMessageType("error");
+      }
     } finally {
       setLoading(false);
     }
