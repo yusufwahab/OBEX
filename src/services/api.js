@@ -124,7 +124,7 @@ export const usersAPI = {
   },
 
   resendCode: async (payload) => {
-    const response = await api.post('/users/resend-verification', payload);
+    const response = await api.post('/users/resend-code', payload);
     return response.data;
   },
 
@@ -139,12 +139,12 @@ export const usersAPI = {
   },
 
   getProfile: async () => {
-    const response = await api.get('/users/profile');
+    const response = await api.get('/users/');
     return response.data;
   },
 
   updateProfile: async (payload) => {
-    const response = await api.put('/users/profile', payload);
+    const response = await api.put('/users/update', payload);
     return response.data;
   }
 };

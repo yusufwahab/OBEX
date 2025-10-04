@@ -51,8 +51,8 @@ const ResetPassword = () => {
       console.log('🔄 Resetting password with:', { email, token: token?.substring(0, 10) + '...', password_length: newPassword.length });
       
       const res = await usersAPI.resetPassword({ 
-        email, 
-        token, 
+        email: email,
+        token: token,
         new_password: newPassword 
       });
       

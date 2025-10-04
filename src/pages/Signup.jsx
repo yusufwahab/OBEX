@@ -46,11 +46,21 @@ const Signup = () => {
     setIsTimeout(false);
 
     try {
-      // Transform form data to match backend schema
+      // Transform form data to match backend schema exactly
       const backendPayload = {
         full_name: formData.full_name,
         email: formData.email,
-        phone: formData.phone,
+        phone: parseInt(formData.phone) || 0,
+        role: "user",
+        time_zone: "UTC",
+        language: "en",
+        is_verified: false,
+        login_attempts: 0,
+        alert_preferences: {
+          sms: false,
+          email: false,
+          whatsapp: true
+        },
         password: formData.password
       };
 
