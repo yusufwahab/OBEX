@@ -9,7 +9,12 @@ import History from './pages/History';
 import Profile from './pages/Profile';
 import Notification from './pages/Notification';
 import ZoneManagement from './pages/ZoneManagement';
-import StreamClient from './StreamClient.jsx'; // ✅ ADDED
+import StreamClient from './StreamClient.jsx';
+
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import ResendCode from './pages/ResendCode';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -22,14 +27,19 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
-        {/* Main App */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/StreamClient" element={<StreamClient />} /> {/* ✅ NEW ROUTE */}
-        <Route path="/zone-management" element={<ZoneManagement />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/notifications" element={<Notification />} />
+        {/* Forgot/Reset Password */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/resend-code" element={<ResendCode />} />
+
+        {/* Main App - Protected Routes */}
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/StreamClient" element={<ProtectedRoute><StreamClient /></ProtectedRoute>} />
+        <Route path="/zone-management" element={<ProtectedRoute><ZoneManagement /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><Notification /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

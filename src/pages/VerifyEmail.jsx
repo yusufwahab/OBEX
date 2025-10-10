@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usersAPI } from "../services/api";
 import { Mail, ShieldCheck, XCircle, RefreshCw, Clock } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const VerifyEmail = () => {
   const location = useLocation();
@@ -227,15 +227,25 @@ const VerifyEmail = () => {
           </div>
         )}
 
-        {/* Back to Login */}
-        <div className="text-center pt-4">
-          <button
-            type="button"
-            onClick={() => navigate("/login")}
-            className="text-cyan-400 text-sm hover:text-cyan-300 transition duration-200 hover:underline"
-          >
-            ← Back to Login
-          </button>
+        {/* Navigation Links */}
+        <div className="text-center pt-4 space-y-2">
+          <div>
+            <Link
+              to="/resend-code"
+              className="text-cyan-400 text-sm hover:text-cyan-300 transition duration-200 hover:underline"
+            >
+              Need a new code?
+            </Link>
+          </div>
+          <div>
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="text-slate-400 text-sm hover:text-slate-300 transition duration-200 hover:underline"
+            >
+              ← Back to Login
+            </button>
+          </div>
         </div>
       </form>
     </div>

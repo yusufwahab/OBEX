@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { usersAPI } from "../services/api";
-import { Mail, Lock, LogIn, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import useAuthStore from "../store/auth-store";
+import { Mail, Lock, LogIn, CheckCircle, XCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
@@ -12,7 +13,9 @@ const Login = () => {
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuthStore();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,22 +34,20 @@ const Login = () => {
     setMessageType(null);
 
     try {
+      console.log('🔐 Attempting login with:', { email: formData.email, password_length: formData.password.length });
+      
       // ✅ This calls POST /users/login with { email, password }
       const res = await usersAPI.login(formData);
+      
+      console.log('✅ Login response:', { ...res, token: res.token ? 'TOKEN_RECEIVED' : 'NO_TOKEN' });
 
       // ✅ Validate token exists
       if (!res.token) {
         throw new Error("Authentication failed: No token received.");
       }
 
-      // ✅ Store JWT token
-      localStorage.setItem('primusLiteToken', res.token);
-
-      // ✅ Store user ID if available (from res.user._id)
-      if (res.user?._id) {
-        localStorage.setItem('primusLiteUserId', res.user._id);
-        console.log('✅ Logged in user ID:', res.user._id);
-      }
+      // ✅ Store in auth store and localStorage
+      login(res.token, res.user);
 
       // ✅ Success feedback
       setMessage(res.message || "✅ Login successful! Redirecting...");
@@ -58,7 +59,12 @@ const Login = () => {
       }, 2000);
 
     } catch (err) {
-      console.error("🔐 Login Error:", err);
+      console.error("🔐 Login Error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+        userMessage: err.userMessage
+      });
 
       let errorMessage = "❌ Login failed. Please check your credentials.";
 
@@ -72,11 +78,17 @@ const Login = () => {
       }
       // Handle wrong credentials (401)
       else if (err.response?.status === 401) {
-        errorMessage = "🔑 Incorrect email or password.";
+        errorMessage = "🔑 Invalid email or password. If you recently reset your password, please try the new password.";
       }
       // Handle backend error message
       else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
+      }
+      // Handle FastAPI validation errors
+      else if (err.response?.data?.detail) {
+        errorMessage = Array.isArray(err.response.data.detail) 
+          ? err.response.data.detail.map(e => e.msg).join(', ')
+          : err.response.data.detail;
       }
       // Handle no response (network/server down)
       else if (!err.response) {
@@ -142,15 +154,32 @@ const Login = () => {
           <div className="relative group">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 group-focus-within:text-cyan-300 transition-colors duration-200" size={20} />
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
-              className="w-full pl-10 pr-3 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all duration-200 backdrop-blur-sm"
+              className="w-full pl-10 pr-12 py-4 rounded-xl bg-white/10 text-white placeholder-slate-300 border border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all duration-200 backdrop-blur-sm"
               value={formData.password}
               onChange={handleChange}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cyan-400 transition-colors duration-200"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
+
+               <div className="text-right">
+  <Link
+    to="/forgot-password"
+    className="text-cyan-400 text-sm hover:text-cyan-300 transition"
+  >
+    Forgot Password?
+  </Link>
+</div>
+
 
           {/* Submit Button */}
           <button

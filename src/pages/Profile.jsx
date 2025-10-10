@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usersAPI } from '../services/api';
 import { useNavStore } from '../store/navigation-store';
 import Header from '../Header';
 import LogoLoader from '../LogoLoader';
@@ -28,16 +29,11 @@ const Profile = () => {
     setActive('profile');
     const fetchProfile = async () => {
       try {
-        const response = await fetch('https://primus-lite.onrender.com/api/users/', {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${localStorage.getItem('primusLiteToken')}` },
-        });
-        if (!response.ok) throw new Error('Failed to fetch profile');
-        const result = await response.json();
+        const result = await usersAPI.getProfile();
         setProfile(prev => ({
           ...prev,
-          ...result.data, // only update the fields backend sent
-        }));;
+          ...result,
+        }));
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -48,20 +44,12 @@ const Profile = () => {
   const handleSave = async () => {
     setShowLoading(true);
     try {
-      const response = await fetch('https://primus-lite.onrender.com/api/users/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(profile),
-      });
-      if (!response.ok) throw new Error('Failed to update profile');
+      await usersAPI.updateProfile(profile);
       alert('Profile updated successfully');
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert(error.userMessage || 'Failed to update profile');
     } finally {
       setShowLoading(false);
     }

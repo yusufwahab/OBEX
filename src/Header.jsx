@@ -1,13 +1,21 @@
 import { useState } from "react";
 import obexLogoHeader from './obex-logo-noText.png';
 import { useNavStore } from "./store/navigation-store";
-import { Link } from "react-router-dom";
+import useAuthStore from "./store/auth-store";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Header({ addCameraStream }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { active, setActive } = useNavStore();
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   function handleDropdownDashboard() {
     setIsDashboardOpen(!isDashboardOpen);
@@ -213,15 +221,15 @@ export default function Header({ addCameraStream }) {
               </div>
             </a> */}
 
-            <Link to='/'
-              onClick={() => setActive('logout')}
-              className={`text-white md:px-4 md:py-3 lg:px-4 lg:py-3 rounded-xl text-sm font-semibold hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-300 bg-gradient-to-r from-cyan-600 to-blue-600 md:text-[12px] xl:text-[16px] shadow-lg hover:shadow-xl transform hover:scale-105 ${active === 'logout' ? 'ring-2 ring-cyan-400/50' : ''}`}
+            <button
+              onClick={handleLogout}
+              className="text-white md:px-4 md:py-3 lg:px-4 lg:py-3 rounded-xl text-sm font-semibold hover:bg-gradient-to-r hover:from-red-600 hover:to-red-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400/50 transition-all duration-300 bg-gradient-to-r from-red-600 to-red-700 md:text-[12px] xl:text-[16px] shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <span className="flex items-center gap-2">
                 <i className="fa-solid fa-sign-out-alt mr-1"></i>
                 Logout
               </span>
-            </Link>
+            </button>
           </div>
         </section>
 
@@ -321,15 +329,15 @@ export default function Header({ addCameraStream }) {
               )}
             </Link>
 
-            <Link to='/login'
-              className="text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-gradient-to-r hover:from-cyan-600 hover:to-blue-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all duration-300 xl:text-[16px] flex items-center gap-3 group md:text-[12px] xl:text-[16px] lg:text-[14px] bg-gradient-to-r from-cyan-600 to-blue-600 w-40 mt-5 shadow-lg hover:shadow-xl transform hover:scale-105"
-              onClick={() => setActive('logout')}
+            <button
+              onClick={handleLogout}
+              className="text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-gradient-to-r hover:from-red-600 hover:to-red-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400/50 transition-all duration-300 xl:text-[16px] flex items-center gap-3 group md:text-[12px] xl:text-[16px] lg:text-[14px] bg-gradient-to-r from-red-600 to-red-700 w-40 mt-5 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <span className="group-hover:text-white transition-colors duration-300 flex items-center gap-2">
                 <i className="fa-solid fa-sign-out-alt"></i>
                 Logout
               </span>
-            </Link>
+            </button>
           </div>
         )}
       </nav>
