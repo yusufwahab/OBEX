@@ -15,10 +15,17 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ResendCode from './pages/ResendCode';
 import ProtectedRoute from './components/ProtectedRoute';
+import AlertPopup from './components/AlertPopup';
+import { useWebSocket } from './services/websocketService';
+import useAuthStore from './store/auth-store';
 
 export default function App() {
+  const userId = useAuthStore((state) => state.user?._id);
+  useWebSocket(userId);
+
   return (
     <BrowserRouter>
+      <AlertPopup />
       <Routes>
         {/* Auth & Landing */}
         <Route path="/" element={<Landing />} />

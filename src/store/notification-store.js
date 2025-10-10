@@ -6,6 +6,8 @@ export const useNotificationStore = create(
     (set, get) => ({
       notifications: [],
       unreadCount: 0,
+      showAlert: false,
+      alertData: null,
 
       // Add a new threat notification
       addNotification: (notification) => {
@@ -15,10 +17,12 @@ export const useNotificationStore = create(
           read: false,
           ...notification,
         };
-        
+
         set((state) => ({
           notifications: [newNotification, ...state.notifications],
           unreadCount: state.unreadCount + 1,
+          showAlert: (notification.priority === 'urgent' && notification.type === 'threat') ? true : state.showAlert,
+          alertData: (notification.priority === 'urgent' && notification.type === 'threat') ? newNotification : state.alertData,
         }));
       },
 
@@ -59,6 +63,11 @@ export const useNotificationStore = create(
       // Clear all notifications
       clearAllNotifications: () => {
         set({ notifications: [], unreadCount: 0 });
+      },
+
+      // Close alert popup
+      closeAlert: () => {
+        set({ showAlert: false, alertData: null });
       },
 
       // Get notifications by type
