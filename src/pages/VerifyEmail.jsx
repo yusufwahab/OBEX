@@ -64,6 +64,9 @@ const VerifyEmail = () => {
       setMessage(res.message || "✅ Email verified successfully!");
       setMessageType("success");
 
+      // Set flag for new user welcome popup
+      localStorage.setItem('newUser', 'true');
+
       setTimeout(() => {
         navigate("/login", { replace: true });
       }, 2000);

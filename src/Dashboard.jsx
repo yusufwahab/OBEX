@@ -738,6 +738,13 @@ export default function Dashboard() {
 
                 <div className="flex gap-3">
                   <button
+                    onClick={() => setShowWelcomePopup(true)}
+                    className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <i className="fa-solid fa-sparkles text-lg"></i>
+                    <span className="font-semibold">Welcome Guide</span>
+                  </button>
+                  <button
                     onClick={() => setIsModalOpen(true)}
                     className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
