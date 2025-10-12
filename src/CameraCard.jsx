@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCameraStore } from './store/camera-store';
 import { useEventStore } from "./store/history-store";
-import { Camera, MapPin, Clock, Calendar, Trash2, Maximize2, Minimize2, Play, StopCircle } from 'lucide-react';
+import { Camera, MapPin, Clock, Calendar, Trash2, Maximize2, Minimize2, Play, StopCircle, Brain, BrainCircuit } from 'lucide-react';
 import { useNotificationStore } from "./store/notification-store";
+import { mlAnalysisAPI } from './services/api';
 
 export default function CameraCard({ 
   camera_name, 
@@ -20,6 +21,7 @@ export default function CameraCard({
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [mlAnalysisStatus, setMlAnalysisStatus] = useState('inactive');
   const videoContainerRef = useRef(null);
 
   // Get store methods
@@ -142,7 +144,7 @@ export default function CameraCard({
 
   const handleStreamToggle = (e) => {
     e.stopPropagation();
-    
+
     // CRITICAL FIX: Validate RTSP URL before attempting to stream
     if (!finalStreamUrl || finalStreamUrl.trim() === '') {
       console.error(`❌ No RTSP URL for camera ${displayName}`);
@@ -163,6 +165,30 @@ export default function CameraCard({
       onStartStream();
     } else if (streamStatus === 'connecting') {
       console.log(`⏳ Stream is already connecting for ${displayName}`);
+    }
+  };
+
+  const handleMlAnalysisToggle = async (e) => {
+    e.stopPropagation();
+
+    try {
+      if (mlAnalysisStatus === 'active') {
+        console.log(`🧠 Stopping ML analysis for camera ${displayName} (ID: ${id})`);
+        await mlAnalysisAPI.stop(id);
+        setMlAnalysisStatus('inactive');
+        console.log(`✅ ML analysis stopped for ${displayName}`);
+      } else {
+        console.log(`🧠 Starting ML analysis for camera ${displayName} (ID: ${id})`);
+        await mlAnalysisAPI.start(id);
+        setMlAnalysisStatus('active');
+        console.log(`✅ ML analysis started for ${displayName}`);
+      }
+    } catch (error) {
+      console.error(`❌ ML analysis toggle failed for ${displayName}:`, error);
+      const errorMessage = error.userMessage || error.message || 'Failed to toggle ML analysis';
+      alert(`ML Analysis Error: ${errorMessage}`);
+      // Reset status on error
+      setMlAnalysisStatus('inactive');
     }
   };
 
@@ -300,7 +326,7 @@ export default function CameraCard({
                 title={
                   !finalStreamUrl ? 'No RTSP URL configured' :
                   streamStatus === 'connecting' ? 'Connecting...' :
-                  streamStatus === 'active' ? 'Stop streaming' : 
+                  streamStatus === 'active' ? 'Stop streaming' :
                   'Start streaming'
                 }
               >
@@ -313,6 +339,26 @@ export default function CameraCard({
                 )}
                 <span>
                   {streamStatus === 'connecting' ? 'Connecting' : streamStatus === 'active' ? 'Stop' : 'Stream'}
+                </span>
+              </button>
+
+              {/* ML Analysis Control Button */}
+              <button
+                onClick={handleMlAnalysisToggle}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all duration-300 shadow-lg ${
+                  mlAnalysisStatus === 'active'
+                    ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white'
+                    : 'bg-gradient-to-r from-slate-500 to-gray-500 hover:from-slate-600 hover:to-gray-600 text-white'
+                }`}
+                title={mlAnalysisStatus === 'active' ? 'Stop ML analysis' : 'Start ML analysis'}
+              >
+                {mlAnalysisStatus === 'active' ? (
+                  <BrainCircuit size={14} className="animate-pulse" />
+                ) : (
+                  <Brain size={14} />
+                )}
+                <span>
+                  {mlAnalysisStatus === 'active' ? 'ML Active' : 'ML Off'}
                 </span>
               </button>
             </div>

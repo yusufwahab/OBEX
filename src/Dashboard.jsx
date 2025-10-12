@@ -10,7 +10,7 @@ import useLoadingStore from './store/loading-store';
 
 export default function Dashboard() {
   const [showMain, setShowMain] = useState(false);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(() => localStorage.getItem('newUser') && !localStorage.getItem('hasSeenWelcome'));
+  const [showWelcomePopup, setShowWelcomePopup] = useState(() => !localStorage.getItem('hasSeenWelcome'));
   const { showLoading, hideLoading } = useLoadingStore();
 
   // WebSocket state

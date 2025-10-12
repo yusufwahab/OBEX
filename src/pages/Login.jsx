@@ -49,6 +49,9 @@ const Login = () => {
       // ✅ Store in auth store and localStorage
       login(res.token, res.user);
 
+      // ✅ Set flag to show welcome modal on every login
+      localStorage.setItem('showWelcomeModal', 'true');
+
       // ✅ Success feedback
       setMessage(res.message || "✅ Login successful! Redirecting...");
       setMessageType("success");

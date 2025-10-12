@@ -208,4 +208,19 @@ export const cameraAPI = {
   },
 };
 
+// ======================
+// ML ANALYSIS API
+// ======================
+export const mlAnalysisAPI = {
+  start: async (cameraId, payload = { detection_enabled: true, confidence_threshold: 1, overlap_threshold: 1 }) => {
+    const response = await api.post(`/ml-analysis/cameras/${cameraId}/ml-analysis/start`, payload);
+    return response.data;
+  },
+
+  stop: async (cameraId) => {
+    const response = await api.delete(`/ml-analysis/cameras/${cameraId}/ml-analysis/stop`);
+    return response.data;
+  },
+};
+
 export default api;
