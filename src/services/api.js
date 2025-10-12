@@ -66,9 +66,12 @@ api.interceptors.response.use(
     if (error.code === 'ECONNABORTED') {
       error.userMessage = '⏳ Request timed out. Server might be waking up. Please try again.';
     } else if (response?.status === 401) {
-      localStorage.removeItem('primusLiteToken');
-      window.location.href = '/login';
-      error.userMessage = 'Session expired. Please log in again.';
+      // Don't redirect or set userMessage for login requests - let Login.jsx handle it
+      if (!config.url.includes('/users/login')) {
+        localStorage.removeItem('primusLiteToken');
+        window.location.href = '/login';
+        error.userMessage = 'Session expired. Please log in again.';
+      }
     } else if (response?.status === 404) {
       error.userMessage = '🔍 API endpoint not found. Check backend routes.';
     } else if (!response) {
