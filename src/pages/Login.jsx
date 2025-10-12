@@ -35,7 +35,10 @@ const Login = () => {
 
     try {
       console.log('🔐 Attempting login with:', { email: formData.email, password_length: formData.password.length });
-      
+
+      // ✅ Clear any existing invalid token before login to prevent 401
+      localStorage.removeItem('primusLiteToken');
+
       // ✅ This calls POST /users/login with { email, password }
       const res = await usersAPI.login(formData);
       
