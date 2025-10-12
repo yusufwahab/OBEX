@@ -5,10 +5,12 @@ import Header from './Header';
 import LogoLoader from './LogoLoader';
 import CameraCard from './CameraCard';
 import PopupModal from './PopupModal';
+import WelcomePopup from './components/WelcomePopup';
 import useLoadingStore from './store/loading-store';
 
 export default function Dashboard() {
   const [showMain, setShowMain] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(() => localStorage.getItem('newUser') && !localStorage.getItem('hasSeenWelcome'));
   const { showLoading, hideLoading } = useLoadingStore();
 
   // WebSocket state
@@ -689,6 +691,14 @@ export default function Dashboard() {
 
   return (
     <>
+      {showWelcomePopup && (
+        <WelcomePopup
+          onClose={() => {
+            localStorage.setItem('hasSeenWelcome', 'true');
+            setShowWelcomePopup(false);
+          }}
+        />
+      )}
       <Header />
       <LogoLoader />
       {isModalOpen && (
