@@ -10,9 +10,9 @@ class ThreatWebSocketService {
     this.onThreatCallback = null;
   }
 
-  connect() {
+  connect(userId = 'default') {
     try {
-      const wsUrl = 'wss://teletraan-backend.avzdax.com/stream/ws/streams';
+      const wsUrl = `wss://obex-backend.onrender.com/ws/alerts/${userId}`;
       console.log('🔌 Connecting to WebSocket:', wsUrl);
       
       this.ws = new WebSocket(wsUrl);
@@ -28,9 +28,9 @@ class ThreatWebSocketService {
           const message = JSON.parse(event.data);
           
           // Handle threat detection messages
-          if (message.type === 'threat_detected' || message.type === 'ml_alert') {
-            console.log('🚨 Threat detected via WebSocket:', message.data);
-            this.handleThreatDetection(message.data);
+          if (message.type === 'threat_detected' || message.type === 'ml_alert' || message.type === 'alert') {
+            console.log('🚨 Alert received via WebSocket:', message);
+            this.handleThreatDetection(message.data || message);
           }
         } catch (error) {
           console.error('❌ Error parsing WebSocket message:', error);

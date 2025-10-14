@@ -3,10 +3,11 @@ import { useNotificationStore } from '../store/notification-store';
 
 let ws = null;
 
-export const connectWebSocket = (userId) => {
-  if (!userId || ws) return; // Prevent multiple connections
+export const connectWebSocket = (userId = 'default') => {
+  if (ws) return; // Prevent multiple connections
 
   const wsUrl = `wss://obex-backend.onrender.com/ws/alerts/${userId}`;
+  console.log('🔌 Connecting to WebSocket:', wsUrl);
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {

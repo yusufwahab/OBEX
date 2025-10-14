@@ -7,6 +7,8 @@ import { mlAnalysisAPI } from './services/api';
 import ThreatAlertModal from './components/ThreatAlertModal';
 import ZoneDrawer from './components/ZoneDrawer';
 import { threatWebSocket } from './services/websocket';
+import { alertWebSocket } from './services/alertWebSocket';
+import useAuthStore from './store/auth-store';
 import { mlAnalysisService } from './services/mlAnalysisService';
 
 export default function CameraCard({ 
@@ -35,6 +37,7 @@ export default function CameraCard({
   const { addNotification } = useNotificationStore();
   const { removeFromCameraStreams } = useCameraStore();
   const { addEvent } = useEventStore();
+  const { user } = useAuthStore();
 
   // Use location_name or camera_name
   const displayName = location_name || camera_name || "Unknown Camera";
@@ -106,22 +109,26 @@ export default function CameraCard({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
-    // Set up WebSocket threat callback for this camera
-    threatWebSocket.setThreatCallback((threatData) => {
-      if (threatData.cameraId === id) {
-        setCurrentThreat(threatData);
+    // Set up WebSocket alert callback for this camera
+    const handleAlert = (alertData) => {
+      if (alertData.cameraId === id || alertData.camera_id === id) {
+        setCurrentThreat(alertData);
         setShowThreatAlert(true);
       }
-    });
+    };
 
-    // Connect WebSocket if not already connected
-    if (!threatWebSocket.isConnected) {
-      threatWebSocket.connect();
+    // Add alert callback
+    alertWebSocket.addAlertCallback(handleAlert);
+
+    // Connect alert WebSocket if not already connected
+    if (!alertWebSocket.isConnected && user?._id) {
+      alertWebSocket.connect();
     }
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      alertWebSocket.removeAlertCallback(handleAlert);
     };
   }, [id]);
 
@@ -233,7 +240,7 @@ export default function CameraCard({
 
   const simulateThreat = (e) => {
     e.stopPropagation();
-    threatWebSocket.simulateThreat('intrusion');
+    alertWebSocket.simulateAlert(id);
   };
 
   return (
