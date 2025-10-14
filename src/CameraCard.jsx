@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCameraStore } from './store/camera-store';
 import { useEventStore } from "./store/history-store";
-import { Camera, MapPin, Clock, Calendar, Trash2, Maximize2, Minimize2, Play, StopCircle, Brain, BrainCircuit } from 'lucide-react';
+import { Camera, MapPin, Clock, Calendar, Trash2, Maximize2, Minimize2, Play, StopCircle, Brain, BrainCircuit, Target } from 'lucide-react';
 import { useNotificationStore } from "./store/notification-store";
 import { mlAnalysisAPI } from './services/api';
+import ThreatAlertModal from './components/ThreatAlertModal';
+import ZoneDrawer from './components/ZoneDrawer';
+import { threatWebSocket } from './services/websocket';
+import { mlAnalysisService } from './services/mlAnalysisService';
 
 export default function CameraCard({ 
   camera_name, 
@@ -22,6 +26,9 @@ export default function CameraCard({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [mlAnalysisStatus, setMlAnalysisStatus] = useState('inactive');
+  const [showZoneDrawer, setShowZoneDrawer] = useState(false);
+  const [showThreatAlert, setShowThreatAlert] = useState(false);
+  const [currentThreat, setCurrentThreat] = useState(null);
   const videoContainerRef = useRef(null);
 
   // Get store methods
@@ -99,11 +106,24 @@ export default function CameraCard({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
+    // Set up WebSocket threat callback for this camera
+    threatWebSocket.setThreatCallback((threatData) => {
+      if (threatData.cameraId === id) {
+        setCurrentThreat(threatData);
+        setShowThreatAlert(true);
+      }
+    });
+
+    // Connect WebSocket if not already connected
+    if (!threatWebSocket.isConnected) {
+      threatWebSocket.connect();
+    }
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
     };
-  }, []);
+  }, [id]);
 
   const handleDelete = async (e) => {
     e.stopPropagation();
@@ -174,12 +194,12 @@ export default function CameraCard({
     try {
       if (mlAnalysisStatus === 'active') {
         console.log(`🧠 Stopping ML analysis for camera ${displayName} (ID: ${id})`);
-        await mlAnalysisAPI.stop(id);
+        await mlAnalysisService.stopAnalysis(id, displayName);
         setMlAnalysisStatus('inactive');
         console.log(`✅ ML analysis stopped for ${displayName}`);
       } else {
         console.log(`🧠 Starting ML analysis for camera ${displayName} (ID: ${id})`);
-        await mlAnalysisAPI.start(id);
+        await mlAnalysisService.startAnalysis(id, displayName);
         setMlAnalysisStatus('active');
         console.log(`✅ ML analysis started for ${displayName}`);
       }
@@ -187,9 +207,33 @@ export default function CameraCard({
       console.error(`❌ ML analysis toggle failed for ${displayName}:`, error);
       const errorMessage = error.userMessage || error.message || 'Failed to toggle ML analysis';
       alert(`ML Analysis Error: ${errorMessage}`);
-      // Reset status on error
       setMlAnalysisStatus('inactive');
     }
+  };
+
+  const handleZoneDrawing = (e) => {
+    e.stopPropagation();
+    setShowZoneDrawer(true);
+  };
+
+  const handleZoneSet = async (zoneCoords) => {
+    try {
+      await mlAnalysisService.setDetectionZone(id, zoneCoords, displayName);
+      console.log(`✅ Detection zone set for ${displayName}:`, zoneCoords);
+    } catch (error) {
+      console.error(`❌ Failed to set detection zone for ${displayName}:`, error);
+      alert('Failed to save detection zone');
+    }
+  };
+
+  const handleCloseThreatAlert = () => {
+    setShowThreatAlert(false);
+    setCurrentThreat(null);
+  };
+
+  const simulateThreat = (e) => {
+    e.stopPropagation();
+    threatWebSocket.simulateThreat('intrusion');
   };
 
   return (
@@ -239,152 +283,145 @@ export default function CameraCard({
               <p className="text-xs mt-2 opacity-75">Click "Stream" button to start</p>
             )}
             {streamStatus === 'connecting' && (
-              <div className="mt-4">
-                <div className="inline-block w-8 h-8 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span className="text-xs">Establishing connection...</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Stream Status Badge */}
-        {streamStatus && (
-          <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-bold ${statusColors[streamStatus]} shadow-lg backdrop-blur-sm`}>
-            {streamStatus === 'active' && <span className="inline-block w-2 h-2 bg-green-600 rounded-full mr-1.5 animate-pulse"></span>}
-            {streamStatus === 'connecting' && <span className="inline-block w-2 h-2 bg-yellow-600 rounded-full mr-1.5 animate-pulse"></span>}
-            {streamStatus.toUpperCase()}
-          </div>
-        )}
+        {/* Zone Drawer Overlay */}
+        <ZoneDrawer
+          cameraId={id}
+          isActive={showZoneDrawer}
+          onZoneSet={handleZoneSet}
+          onClose={() => setShowZoneDrawer(false)}
+        />
 
-        {/* Fullscreen Toggle */}
-        <button
-          onClick={toggleFullscreen}
-          className="absolute bottom-3 right-3 text-white bg-slate-800/80 hover:bg-slate-700/90 rounded-lg p-2 cursor-pointer transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-cyan-500/30 z-10"
-          title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-        >
-          {isFullscreen ? (
-            <Minimize2 size={18} className="text-cyan-400" />
-          ) : (
-            <Maximize2 size={18} className="text-cyan-400" />
-          )}
-        </button>
-
-        {/* Video Quality Indicator (only show when active) */}
-        {streamStatus === 'active' && (
-          <div className="absolute top-3 left-3 bg-slate-800/80 backdrop-blur-sm rounded-lg px-2 py-1 text-xs text-slate-300">
-            <span className="text-green-400">●</span> Live
-          </div>
-        )}
+        {/* Control Buttons Overlay */}
+        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={toggleFullscreen}
+            className="bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-colors"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
-      {/* Card Info Section */}
-      {!isFullscreen && (
-        <div className="relative p-4 flex flex-col justify-between flex-1 bg-gradient-to-r from-slate-700/60 to-slate-800/60 backdrop-blur-sm border-t border-slate-600/20 transition-all duration-300 min-h-[110px]">
-          <div className="space-y-3 mb-4">
-            <div className="flex items-center gap-2 text-slate-300 text-xs font-medium">
-              <Calendar className="w-3 h-3 text-cyan-400" />
-              <span>{date || new Date().toISOString().split('T')[0]}</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-300 text-xs font-medium">
-              <Clock className="w-3 h-3 text-cyan-400" />
-              <span>{time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
-            </div>
-            <h3 className="text-white text-base font-bold uppercase tracking-wide flex items-center gap-2 truncate">
-              <Camera className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-              <span className="truncate" title={displayName}>{displayName}</span>
-            </h3>
+      {/* Camera Info Section */}
+      <div className="p-6 flex-1">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-3 h-3 rounded-full ${statusColors[streamStatus] || statusColors.inactive} shadow-lg`}></div>
+            <h3 className="text-xl font-bold text-white truncate">{displayName}</h3>
           </div>
-
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Threat Level Badge */}
-              {threatLevel && (
-                <div className="relative group/badge">
-                  <span className={`text-white text-xs font-bold px-2 py-1.5 rounded-full ${threatColors[threatLevel]} text-center shadow-lg ${threatShadows[threatLevel]} flex items-center gap-1.5`}>
-                    <span className="text-xs">{threatIcons[threatLevel]}</span>
-                    <span>{threatLevel}</span>
-                  </span>
-                </div>
-              )}
-
-              {/* Zone Badge */}
-              {zoneCategory && (
-                <div className="bg-gradient-to-r from-slate-700/90 to-slate-600/90 text-cyan-300 text-xs font-semibold px-2 py-1.5 rounded-full border border-cyan-400/30 shadow-lg flex items-center gap-1.5">
-                  <MapPin className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate max-w-[80px]" title={zoneCategory}>{zoneCategory}</span>
-                </div>
-              )}
-
-              {/* Stream Control Button - CRITICAL: Validate before streaming */}
-              <button
-                onClick={handleStreamToggle}
-                disabled={streamStatus === 'connecting'}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all duration-300 shadow-lg ${
-                  streamStatus === 'active'
-                    ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white'
-                    : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-                title={
-                  !finalStreamUrl ? 'No RTSP URL configured' :
-                  streamStatus === 'connecting' ? 'Connecting...' :
-                  streamStatus === 'active' ? 'Stop streaming' :
-                  'Start streaming'
-                }
-              >
-                {streamStatus === 'connecting' ? (
-                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : streamStatus === 'active' ? (
-                  <StopCircle size={14} />
-                ) : (
-                  <Play size={14} />
-                )}
-                <span>
-                  {streamStatus === 'connecting' ? 'Connecting' : streamStatus === 'active' ? 'Stop' : 'Stream'}
-                </span>
-              </button>
-
-              {/* ML Analysis Control Button */}
-              <button
-                onClick={handleMlAnalysisToggle}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all duration-300 shadow-lg ${
-                  mlAnalysisStatus === 'active'
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white'
-                    : 'bg-gradient-to-r from-slate-500 to-gray-500 hover:from-slate-600 hover:to-gray-600 text-white'
-                }`}
-                title={mlAnalysisStatus === 'active' ? 'Stop ML analysis' : 'Start ML analysis'}
-              >
-                {mlAnalysisStatus === 'active' ? (
-                  <BrainCircuit size={14} className="animate-pulse" />
-                ) : (
-                  <Brain size={14} />
-                )}
-                <span>
-                  {mlAnalysisStatus === 'active' ? 'ML Active' : 'ML Off'}
-                </span>
-              </button>
-            </div>
-
-            {/* Delete Button */}
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="relative text-white bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 rounded-xl p-2.5 transition-all duration-300 transform hover:scale-110 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 flex-shrink-0"
-              title={isDeleting ? 'Deleting...' : 'Delete camera'}
-            >
-              {isDeleting ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              ) : (
-                <Trash2 size={14} />
-              )}
-              <span className="text-xs font-medium hidden sm:block">
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </span>
-            </button>
+          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${threatColors[threatLevel]} ${threatShadows[threatLevel]} shadow-lg`}>
+            {threatIcons[threatLevel]} {threatLevel}
           </div>
         </div>
-      )}
+
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-gray-300">
+            <MapPin className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm">{zoneCategory || "Zone Unknown"}</span>
+          </div>
+          <div className="flex items-center gap-4 text-gray-300">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm">{date || new Date().toISOString().split('T')[0]}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm">{time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={handleStreamToggle}
+            disabled={!finalStreamUrl}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+              streamStatus === 'active'
+                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white'
+                : streamStatus === 'connecting'
+                ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white cursor-not-allowed'
+                : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+            } ${!finalStreamUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {streamStatus === 'active' ? (
+              <><StopCircle className="w-4 h-4" /> Stop</>
+            ) : streamStatus === 'connecting' ? (
+              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Connecting</>
+            ) : (
+              <><Play className="w-4 h-4" /> Stream</>
+            )}
+          </button>
+
+          <button
+            onClick={handleMlAnalysisToggle}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+              mlAnalysisStatus === 'active'
+                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white'
+                : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+            }`}
+          >
+            {mlAnalysisStatus === 'active' ? (
+              <><BrainCircuit className="w-4 h-4" /> ML Active</>
+            ) : (
+              <><Brain className="w-4 h-4" /> Start ML</>
+            )}
+          </button>
+
+          <button
+            onClick={handleZoneDrawing}
+            disabled={streamStatus !== 'active'}
+            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+              streamStatus === 'active'
+                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white'
+                : 'bg-gradient-to-r from-gray-400 to-gray-500 text-gray-400 cursor-not-allowed opacity-50'
+            }`}
+          >
+            <Target className="w-4 h-4" /> Set Zone
+          </button>
+
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isDeleting ? (
+              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Deleting</>
+            ) : (
+              <><Trash2 className="w-4 h-4" /> Delete</>
+            )}
+          </button>
+        </div>
+
+        {/* Test Button (Development Only) */}
+        {/* {import.meta.env.DEV && (
+          <button
+            onClick={simulateThreat}
+            className="w-full mt-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
+          >
+            🧪 Simulate Threat
+          </button>
+        )} */}
+      </div>
+
+      {/* Threat Alert Modal */}
+      <ThreatAlertModal
+        isOpen={showThreatAlert}
+        onClose={handleCloseThreatAlert}
+        alertData={currentThreat}
+      />
     </section>
   );
-}
+};
 
 
 

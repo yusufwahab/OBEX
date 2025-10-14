@@ -224,6 +224,41 @@ export const mlAnalysisAPI = {
     const response = await api.delete(`/ml-analysis/cameras/${cameraId}/ml-analysis/stop`);
     return response.data;
   },
+
+  setZone: async (cameraId, zoneCoords) => {
+    const response = await api.put(`/ml-analysis/cameras/${cameraId}/ml-analysis/zone`, { zone_coords: zoneCoords });
+    return response.data;
+  },
+
+  getDetections: async (cameraId) => {
+    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/detections`);
+    return response.data;
+  },
+
+  getIntrusionAlerts: async (cameraId, limit = 50) => {
+    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/intrusion-alerts?limit=${limit}`);
+    return response.data;
+  },
+
+  getLoiteringAlerts: async (cameraId, limit = 50) => {
+    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/loitering-alerts?limit=${limit}`);
+    return response.data;
+  },
+
+  getTheftAlerts: async (cameraId, limit = 50) => {
+    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/theft-alerts?limit=${limit}`);
+    return response.data;
+  },
+
+  getSuspiciousBehaviorAlerts: async (cameraId, limit = 50) => {
+    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/suspicious-behavior?limit=${limit}`);
+    return response.data;
+  },
+
+  getStatus: async (cameraId) => {
+    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/status`);
+    return response.data;
+  },
 };
 
 export default api;

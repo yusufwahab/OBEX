@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavStore } from '../store/navigation-store';
-import { useNotificationStore } from '../store/notification-store'; // Import the notification store
+import { useNotificationStore } from '../store/notification-store';
 import Header from '../Header';
 import LogoLoader from '../LogoLoader';
 import useLoadingStore from '../store/loading-store';
+import ThreatAlertModal from '../components/ThreatAlertModal';
+import { threatWebSocket } from '../services/websocket';
 
 /*
  * NOTIFICATION SYSTEM - BACKEND INTEGRATION READY
@@ -39,7 +41,9 @@ import useLoadingStore from '../store/loading-store';
 
 const Notification = () => {
   //LOAD BEFORE IT SHOWS NOTIFICATION PAGE
-  const [showNotification, setShowNotification] = useState(false)
+  const [showNotification, setShowNotification] = useState(false);
+  const [showThreatAlert, setShowThreatAlert] = useState(false);
+  const [currentThreat, setCurrentThreat] = useState(null);
 
   const { showLoading, hideLoading } = useLoadingStore();
   useEffect(() => {
@@ -87,6 +91,17 @@ const Notification = () => {
 
   useEffect(() => {
     setActive('notification');
+    
+    // Set up WebSocket for global threat alerts
+    threatWebSocket.setThreatCallback((threatData) => {
+      setCurrentThreat(threatData);
+      setShowThreatAlert(true);
+    });
+    
+    // Connect WebSocket if not already connected
+    if (!threatWebSocket.isConnected) {
+      threatWebSocket.connect();
+    }
   }, [setActive]);
 
   // Function to add sample notifications (now uses store)
@@ -256,6 +271,16 @@ const Notification = () => {
                       <i className="fa-solid fa-check-double text-lg"></i>
                       <span className="font-semibold">Mark All Read</span>
                     </button>
+                    
+                    {import.meta.env.DEV && (
+                      <button
+                        onClick={() => threatWebSocket.simulateThreat('intrusion')}
+                        className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-yellow-400/30"
+                      >
+                        <i className="fa-solid fa-flask text-lg"></i>
+                        <span className="font-semibold">Test Alert</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -504,6 +529,16 @@ const Notification = () => {
           </div>
         </div>
       )}
+      
+      {/* Global Threat Alert Modal */}
+      <ThreatAlertModal
+        isOpen={showThreatAlert}
+        onClose={() => {
+          setShowThreatAlert(false);
+          setCurrentThreat(null);
+        }}
+        alertData={currentThreat}
+      />
     </>
   );
 };

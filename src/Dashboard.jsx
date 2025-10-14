@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useCameraStore } from './store/camera-store';
 import { useEventStore } from './store/history-store';
+import { useNotificationStore } from './store/notification-store';
 import Header from './Header';
 import LogoLoader from './LogoLoader';
 import CameraCard from './CameraCard';
 import PopupModal from './PopupModal';
 import WelcomePopup from './components/WelcomePopup';
+import ThreatAlertModal from './components/ThreatAlertModal';
 import useLoadingStore from './store/loading-store';
 
 export default function Dashboard() {
@@ -38,8 +40,11 @@ export default function Dashboard() {
   } = useCameraStore();
 
   const { addEvent } = useEventStore();
+  const { addNotification } = useNotificationStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showThreatAlert, setShowThreatAlert] = useState(false);
+  const [currentThreat, setCurrentThreat] = useState(null);
 
   // ICE servers configuration
   const iceServers = {
@@ -230,6 +235,31 @@ export default function Dashboard() {
     });
   }, [addLog, setCameraStreams]);
 
+  // Handle threat detection from WebSocket
+  const handleThreatDetection = useCallback((message) => {
+    const threatData = message.data;
+    addLog(`🚨 Threat detected: ${threatData.type} in ${threatData.cameraName}`, 'error');
+    
+    // Create notification
+    const notification = {
+      type: 'threat',
+      level: threatData.severity || 'High',
+      title: `${threatData.type?.toUpperCase()} Alert`,
+      message: threatData.description || `${threatData.type} detected in ${threatData.cameraName}`,
+      priority: 'urgent',
+      cameraId: threatData.cameraId,
+      cameraName: threatData.cameraName,
+      zone: threatData.zone,
+      timestamp: threatData.timestamp || new Date().toISOString()
+    };
+    
+    addNotification(notification);
+    
+    // Show threat alert modal
+    setCurrentThreat(threatData);
+    setShowThreatAlert(true);
+  }, [addLog, addNotification]);
+
   // Handle WebSocket messages
   const handleMessage = useCallback(async (message) => {
     addLog(`📨 Received: ${message.type}`, 'info');
@@ -243,6 +273,10 @@ export default function Dashboard() {
         break;
       case 'ice_candidate':
         await handleICECandidate(message);
+        break;
+      case 'threat_detected':
+      case 'ml_alert':
+        handleThreatDetection(message);
         break;
       case 'success':
         addLog(`✅ Success: ${message.data?.message || 'Operation completed'}`, 'info');
@@ -739,7 +773,7 @@ export default function Dashboard() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowWelcomePopup(true)}
-                    className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                   >
                     <i className="fa-solid fa-sparkles text-lg"></i>
                     <span className="font-semibold">Welcome Guide</span>
@@ -751,15 +785,7 @@ export default function Dashboard() {
                     <i className="fa-solid fa-plus text-lg"></i>
                     <span className="font-semibold">Add Camera</span>
                   </button>
-                  <button
-                    onClick={requestStreamList}
-                    disabled={!wsConnected}
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-8 py-4 rounded-xl flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title={wsConnected ? "Refresh stream list" : "WebSocket disconnected"}
-                  >
-                    <i className="fa-solid fa-rotate text-lg"></i>
-                    <span className="font-semibold">Refresh Streams</span>
-                  </button>
+
                 </div>
               </div>
             </div>
@@ -967,6 +993,16 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      
+      {/* Threat Alert Modal */}
+      <ThreatAlertModal
+        isOpen={showThreatAlert}
+        onClose={() => {
+          setShowThreatAlert(false);
+          setCurrentThreat(null);
+        }}
+        alertData={currentThreat}
+      />
     </>
   );
 }
