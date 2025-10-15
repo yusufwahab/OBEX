@@ -14,6 +14,8 @@ export default function Dashboard() {
   const [showMain, setShowMain] = useState(false);
   const [showWelcomePopup, setShowWelcomePopup] = useState(() => !localStorage.getItem('hasSeenWelcome'));
   const { showLoading, hideLoading } = useLoadingStore();
+  const [alerts, setAlerts] = useState([]);
+
 
   // WebSocket state
   const [wsConnected, setWsConnected] = useState(false);
@@ -636,6 +638,49 @@ export default function Dashboard() {
     };
   }, [showLoading, hideLoading, addLog, connectWebSocket, fetchCameras]);
 
+  useEffect(() => {
+    const user = localStorage.getItem("auth-storage")
+
+    if (user) {
+      const parsed = JSON.parse(user);
+        const innerState = typeof parsed.state === "string" 
+          ? JSON.parse(parsed.state)
+          : parsed.state;
+
+        const id = innerState?.user?.id;
+        console.log("👤 User ID:", id);
+        console.log(id)
+        const ws = new WebSocket(`wss://obex-backend-1.onrender.com/ws/alerts/${id}`);
+    
+        ws.onopen = () => {
+          console.log("✅ WebSocket connected");
+        };
+    
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log("📩 Received:", message);
+
+        // Check if it's an alert event
+        if (message.event === "alert") {
+          setCurrentThreat(message)
+          setAlerts((prev) => [...prev, message]);
+          setShowThreatAlert(true)
+        }
+      } catch (err) {
+        console.error("❌ Invalid JSON message:", err);
+      }
+    };
+    
+        ws.onerror = (err) => console.error("⚠️ WebSocket error:", err);
+        ws.onclose = () => console.log("❌ WebSocket disconnected");
+    
+        return () => ws.close();
+      } else {
+        return;
+      }
+  }, []);
+
   // Handle modal save with proper backend integration
   const handleModalSave = async (cameraData) => {
     try {
@@ -801,6 +846,29 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
+
+            <div className="p-4">
+              <h2 className="text-xl font-semibold text-white mb-2">📡 Real-time Alerts</h2>
+              {alerts.length === 0 ? (
+                <p className="text-gray-500">No alerts yet...</p>
+              ) : (
+                <ul className="space-y-2">
+                  {alerts.map((alert, index) => (
+                    <li
+                      key={index}
+                      className="p-3 bg-gray-100 border rounded-lg shadow-sm"
+                    >
+                      <p><strong>Type:</strong> {alert.type}</p>
+                      <p><strong>Camera:</strong> {alert.camera_id}</p>
+                      <p><strong>Time:</strong> {alert.timestamp}</p>
+                      <pre className="text-xs mt-2 bg-gray-50 p-2 rounded">
+                        {JSON.stringify(alert.details, null, 2)}
+                      </pre>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">
               <div className="flex gap-4">
