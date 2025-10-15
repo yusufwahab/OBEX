@@ -1012,6 +1012,7 @@ export default function Dashboard() {
                     <CameraCard
                       key={camera.id}
                       id={camera.id}
+                      streamId={camera.streamId}
                       camera_name={camera.location_name}
                       location_name={camera.location_name}
                       date={camera.date}
