@@ -160,7 +160,7 @@ export default function CameraCard({
 
         const timestamp = new Date().toISOString();
         addEvent({
-          streamId,
+          id,
           camera_name: displayName,
           date: date || new Date().toISOString().split('T')[0],
           time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
@@ -172,7 +172,7 @@ export default function CameraCard({
           description: `Deleted camera "${displayName}"`
         });
 
-        await removeFromCameraStreams(streamId);
+        await removeFromCameraStreams(id);
         console.log(`✅ Camera ${displayName} deleted successfully`);
       } catch (error) {
         console.error("❌ Error deleting camera:", error);
