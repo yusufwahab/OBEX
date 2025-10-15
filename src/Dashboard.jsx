@@ -37,7 +37,6 @@ export default function Dashboard() {
     clearCameraStreams,
     clearError,
     setCameraStreams,
-    fetchCameras,
     addCamera
   } = useCameraStore();
 
@@ -185,14 +184,17 @@ export default function Dashboard() {
 
     // Transform WebSocket stream list to match camera store format
     const wsStreams = message.data.map(stream => {
+      const cameraId = stream.camera_id;
       const streamId = stream.stream_id || stream.id || stream._id || `ws_${Date.now()}_${Math.random()}`;
       const cameraName = stream.camera_name || stream.location_name || stream.name || 'Unknown Camera';
       const rtspUrl = stream.rtsp_url || stream.stream_url || '';
+      console.log(stream)
 
-      addLog(`   📹 ${cameraName} (${streamId}) - RTSP: ${rtspUrl ? '✓' : '✗'}`, 'info');
+      addLog(`   📹 ${cameraName} (${cameraId}) (${streamId}) - RTSP: ${rtspUrl ? '✓' : '✗'}`, 'info');
 
       return {
-        id: streamId,
+        id: cameraId,
+        streamId,
         location_name: cameraName,
         ip_address: stream.ip_address || '',
         port: stream.port || '554',
@@ -394,16 +396,16 @@ export default function Dashboard() {
   }, [addLog, sendMessage, updateStreamStatus]);
 
   // Start streaming - ENHANCED VERSION
-  const startStream = useCallback(async (cameraId, rtspUrl) => {
+  const startStream = useCallback(async (streamId, rtspUrl) => {
     // CRITICAL VALIDATION
     if (!rtspUrl || rtspUrl.trim() === '') {
-      addLog(`❌ ERROR: No RTSP URL provided for camera ${cameraId}`, 'error');
-      alert(`Cannot start stream: Camera ${cameraId} has no RTSP URL configured!\n\nPlease check the camera configuration.`);
-      updateStreamStatus(cameraId, 'inactive');
+      addLog(`❌ ERROR: No RTSP URL provided for camera ${streamId}`, 'error');
+      alert(`Cannot start stream: Camera ${streamId} has no RTSP URL configured!\n\nPlease check the camera configuration.`);
+      updateStreamStatus(streamId, 'inactive');
       return;
     }
 
-    addLog(`🎥 Starting stream for camera: ${cameraId}`, 'info');
+    addLog(`🎥 Starting stream for camera: ${streamId}`, 'info');
     addLog(`📡 RTSP URL (masked): ${rtspUrl.replace(/:[^:@]+@/, ':****@')}`, 'info');
     
     // Check WebSocket connection first
@@ -416,48 +418,48 @@ export default function Dashboard() {
       }
       
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        updateStreamStatus(cameraId, 'inactive');
+        updateStreamStatus(streamId, 'inactive');
         alert('Cannot start stream: WebSocket not connected. Please refresh the page and try again.');
         return;
       }
     }
 
-    updateStreamStatus(cameraId, 'connecting');
+    updateStreamStatus(streamId, 'connecting');
 
     // Send stream_start message with RTSP URL
     const streamStartMessage = {
       type: 'stream_start',
       data: {
-        stream_id: cameraId,
+        stream_id: streamId,
         rtsp_url: rtspUrl // CRITICAL: Must include valid RTSP URL
       }
     };
 
     addLog(`📤 Sending stream_start message:`, 'info');
-    addLog(`   Stream ID: ${cameraId}`, 'info');
+    addLog(`   Stream ID: ${streamId}`, 'info');
     addLog(`   RTSP URL: ${rtspUrl.replace(/:[^:@]+@/, ':****@')}`, 'info');
 
     if (!sendMessage(streamStartMessage)) {
-      updateStreamStatus(cameraId, 'inactive');
+      updateStreamStatus(streamId, 'inactive');
       alert('Failed to send stream start command. Please try again.');
       return;
     }
 
     // Create WebRTC peer connection
     const pc = new RTCPeerConnection(iceServers);
-    peerConnectionsRef.current.set(cameraId, pc);
+    peerConnectionsRef.current.set(streamId, pc);
 
     // Handle incoming video track
     pc.ontrack = (event) => {
-      addLog(`✅ Received track for camera: ${cameraId}`, 'info');
+      addLog(`✅ Received track for camera: ${streamId}`, 'info');
       addLog(`   Track kind: ${event.track.kind}`, 'info');
       addLog(`   Track readyState: ${event.track.readyState}`, 'info');
       
-      const video = document.getElementById(`video-${cameraId}`);
-      const placeholder = document.getElementById(`placeholder-${cameraId}`);
+      const video = document.getElementById(`video-${streamId}`);
+      const placeholder = document.getElementById(`placeholder-${streamId}`);
       
       if (!video) {
-        addLog(`❌ Video element not found: video-${cameraId}`, 'error');
+        addLog(`❌ Video element not found: video-${streamId}`, 'error');
         return;
       }
 
@@ -476,8 +478,8 @@ export default function Dashboard() {
       // Play the video
       video.play()
         .then(() => {
-          addLog(`✅ Video playing for camera: ${cameraId}`, 'info');
-          updateStreamStatus(cameraId, 'active');
+          addLog(`✅ Video playing for camera: ${streamId}`, 'info');
+          updateStreamStatus(streamId, 'active');
           
           // Log video stats after 2 seconds
           setTimeout(() => {
@@ -486,58 +488,58 @@ export default function Dashboard() {
         })
         .catch(e => {
           addLog(`❌ Video play error: ${e.message}`, 'error');
-          updateStreamStatus(cameraId, 'inactive');
+          updateStreamStatus(streamId, 'inactive');
         });
     };
 
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
       if (event.candidate) {
-        addLog(`🧊 Sending ICE candidate for ${cameraId}`, 'info');
+        addLog(`🧊 Sending ICE candidate for ${streamId}`, 'info');
         sendMessage({
           type: 'ice_candidate',
           data: {
-            stream_id: cameraId,
+            stream_id: streamId,
             candidate: event.candidate.toJSON()
           }
         });
       } else {
-        addLog(`✅ ICE gathering complete for ${cameraId}`, 'info');
+        addLog(`✅ ICE gathering complete for ${streamId}`, 'info');
       }
     };
 
     // Monitor connection state
     pc.onconnectionstatechange = () => {
       const state = pc.connectionState;
-      addLog(`🔌 Connection state for ${cameraId}: ${state}`, 'info');
+      addLog(`🔌 Connection state for ${streamId}: ${state}`, 'info');
       
       switch (state) {
         case 'connected':
-          addLog(`✅ WebRTC connected for ${cameraId}`, 'info');
-          updateStreamStatus(cameraId, 'active');
+          addLog(`✅ WebRTC connected for ${streamId}`, 'info');
+          updateStreamStatus(streamId, 'active');
           break;
         case 'disconnected':
-          addLog(`⚠️ WebRTC disconnected for ${cameraId}`, 'error');
-          updateStreamStatus(cameraId, 'inactive');
+          addLog(`⚠️ WebRTC disconnected for ${streamId}`, 'error');
+          updateStreamStatus(streamId, 'inactive');
           break;
         case 'failed':
-          addLog(`❌ WebRTC connection failed for ${cameraId}`, 'error');
-          updateStreamStatus(cameraId, 'inactive');
+          addLog(`❌ WebRTC connection failed for ${streamId}`, 'error');
+          updateStreamStatus(streamId, 'inactive');
           break;
         case 'connecting':
-          updateStreamStatus(cameraId, 'connecting');
+          updateStreamStatus(streamId, 'connecting');
           break;
       }
     };
 
     // Monitor ICE connection state
     pc.oniceconnectionstatechange = () => {
-      addLog(`🧊 ICE connection state for ${cameraId}: ${pc.iceConnectionState}`, 'info');
+      addLog(`🧊 ICE connection state for ${streamId}: ${pc.iceConnectionState}`, 'info');
     };
 
     // Monitor signaling state
     pc.onsignalingstatechange = () => {
-      addLog(`📡 Signaling state for ${cameraId}: ${pc.signalingState}`, 'info');
+      addLog(`📡 Signaling state for ${streamId}: ${pc.signalingState}`, 'info');
     };
 
     try {
@@ -554,16 +556,16 @@ export default function Dashboard() {
 
       // Create and set local offer
       const offer = await pc.createOffer({});
-      addLog(`📝 Created WebRTC offer for ${cameraId}`, 'info');
+      addLog(`📝 Created WebRTC offer for ${streamId}`, 'info');
       
       await pc.setLocalDescription(offer);
-      addLog(`✅ Set local description for ${cameraId}`, 'info');
+      addLog(`✅ Set local description for ${streamId}`, 'info');
 
       // Send offer to server
       const offerMessage = {
         type: 'webrtc_offer',
         data: {
-          stream_id: cameraId,
+          stream_id: streamId,
           offer: offer
         }
       };
@@ -574,8 +576,8 @@ export default function Dashboard() {
       if (!success) {
         addLog(`❌ Failed to send WebRTC offer`, 'error');
         pc.close();
-        peerConnectionsRef.current.delete(cameraId);
-        updateStreamStatus(cameraId, 'inactive');
+        peerConnectionsRef.current.delete(streamId);
+        updateStreamStatus(streamId, 'inactive');
         alert('Failed to establish WebRTC connection. Please try again.');
       } else {
         addLog(`✅ WebRTC offer sent successfully. Waiting for answer...`, 'info');
@@ -583,17 +585,17 @@ export default function Dashboard() {
         // Set a timeout for receiving answer
         setTimeout(() => {
           if (pc.signalingState === 'have-local-offer') {
-            addLog(`⏰ Timeout waiting for WebRTC answer for ${cameraId}`, 'error');
-            alert(`Stream connection timeout for camera ${cameraId}.\n\nPossible issues:\n1. RTSP URL is incorrect\n2. Camera is not accessible\n3. Network issues\n4. Streaming server error`);
-            stopStream(cameraId);
+            addLog(`⏰ Timeout waiting for WebRTC answer for ${streamId}`, 'error');
+            alert(`Stream connection timeout for camera ${streamId}.\n\nPossible issues:\n1. RTSP URL is incorrect\n2. Camera is not accessible\n3. Network issues\n4. Streaming server error`);
+            stopStream(streamId);
           }
         }, 15000); // 15 second timeout
       }
     } catch (error) {
       addLog(`❌ Failed to create WebRTC offer: ${error.message}`, 'error');
       pc.close();
-      peerConnectionsRef.current.delete(cameraId);
-      updateStreamStatus(cameraId, 'inactive');
+      peerConnectionsRef.current.delete(streamId);
+      updateStreamStatus(streamId, 'inactive');
       alert(`Failed to start stream: ${error.message}`);
     }
   }, [addLog, sendMessage, updateStreamStatus, chooseCodecs, connectWebSocket, stopStream, iceServers]);
@@ -612,13 +614,13 @@ export default function Dashboard() {
         addLog('🔑 Auth token loaded from localStorage', 'info');
         
         // First, fetch cameras from backend
-        try {
-          addLog('📡 Fetching cameras from backend...', 'info');
-          await fetchCameras();
-          addLog('✅ Fetched cameras from backend', 'info');
-        } catch (error) {
-          addLog(`❌ Failed to fetch cameras from backend: ${error.message}`, 'error');
-        }
+        // try {
+        //   addLog('📡 Fetching cameras from backend...', 'info');
+        //   await fetchCameras();
+        //   addLog('✅ Fetched cameras from backend', 'info');
+        // } catch (error) {
+        //   addLog(`❌ Failed to fetch cameras from backend: ${error.message}`, 'error');
+        // }
         
         // Then connect to WebSocket and request stream list
         connectWebSocket(token);
@@ -636,7 +638,7 @@ export default function Dashboard() {
       }
       peerConnectionsRef.current.forEach(pc => pc.close());
     };
-  }, [showLoading, hideLoading, addLog, connectWebSocket, fetchCameras]);
+  }, [showLoading, hideLoading, addLog, connectWebSocket]);
 
   useEffect(() => {
     const user = localStorage.getItem("auth-storage")
@@ -1018,15 +1020,15 @@ export default function Dashboard() {
                       zoneCategory={camera.zoneCategory || 'Default'}
                       rtsp_url={camera.rtsp_url}
                       streamUrl={camera.rtsp_url}
-                      streamStatus={streamStatuses[camera.id] || 'inactive'}
+                      streamStatus={streamStatuses[camera.streamId] || 'inactive'}
                       onStartStream={() => {
                         console.log(`🎬 Dashboard: Starting stream for ${camera.location_name} (${camera.id})`);
                         console.log(`   RTSP URL: ${camera.rtsp_url ? camera.rtsp_url.replace(/:[^:@]+@/, ':****@') : 'MISSING'}`);
-                        startStream(camera.id, camera.rtsp_url);
+                        startStream(camera.streamId, camera.rtsp_url);
                       }}
                       onStopStream={() => {
                         console.log(`⏹️ Dashboard: Stopping stream for ${camera.location_name} (${camera.id})`);
-                        stopStream(camera.id);
+                        stopStream(camera.streamId);
                       }}
                     />
                   ))}

@@ -19,7 +19,7 @@ class MLAnalysisService {
       console.log(`✅ ML Analysis started for ${cameraName}`);
       
       // Start polling for threats
-      this.startThreatPolling(cameraId, cameraName);
+      // this.startThreatPolling(cameraId, cameraName);
       
       return result;
     } catch (error) {
@@ -69,52 +69,52 @@ class MLAnalysisService {
   }
 
   // Start polling for threats
-  startThreatPolling(cameraId, cameraName) {
-    if (this.pollingIntervals.has(cameraId)) {
-      return; // Already polling
-    }
+  // startThreatPolling(cameraId, cameraName) {
+  //   if (this.pollingIntervals.has(cameraId)) {
+  //     return; // Already polling
+  //   }
 
-    const pollThreats = async () => {
-      try {
-        // Poll all threat types
-        const [intrusions, loitering, theft, suspicious] = await Promise.allSettled([
-          mlAnalysisAPI.getIntrusionAlerts(cameraId, 5),
-          mlAnalysisAPI.getLoiteringAlerts(cameraId, 5),
-          mlAnalysisAPI.getTheftAlerts(cameraId, 5),
-          mlAnalysisAPI.getSuspiciousBehaviorAlerts(cameraId, 5)
-        ]);
+  //   const pollThreats = async () => {
+  //     try {
+  //       // Poll all threat types
+  //       const [intrusions, loitering, theft, suspicious] = await Promise.allSettled([
+  //         mlAnalysisAPI.getIntrusionAlerts(cameraId, 5),
+  //         mlAnalysisAPI.getLoiteringAlerts(cameraId, 5),
+  //         mlAnalysisAPI.getTheftAlerts(cameraId, 5),
+  //         mlAnalysisAPI.getSuspiciousBehaviorAlerts(cameraId, 5)
+  //       ]);
 
-        // Process intrusion alerts
-        if (intrusions.status === 'fulfilled' && intrusions.value?.length > 0) {
-          this.processThreats(intrusions.value, 'intrusion', cameraId, cameraName);
-        }
+  //       // Process intrusion alerts
+  //       if (intrusions.status === 'fulfilled' && intrusions.value?.length > 0) {
+  //         this.processThreats(intrusions.value, 'intrusion', cameraId, cameraName);
+  //       }
 
-        // Process loitering alerts
-        if (loitering.status === 'fulfilled' && loitering.value?.length > 0) {
-          this.processThreats(loitering.value, 'loitering', cameraId, cameraName);
-        }
+  //       // Process loitering alerts
+  //       if (loitering.status === 'fulfilled' && loitering.value?.length > 0) {
+  //         this.processThreats(loitering.value, 'loitering', cameraId, cameraName);
+  //       }
 
-        // Process theft alerts
-        if (theft.status === 'fulfilled' && theft.value?.length > 0) {
-          this.processThreats(theft.value, 'theft', cameraId, cameraName);
-        }
+  //       // Process theft alerts
+  //       if (theft.status === 'fulfilled' && theft.value?.length > 0) {
+  //         this.processThreats(theft.value, 'theft', cameraId, cameraName);
+  //       }
 
-        // Process suspicious behavior alerts
-        if (suspicious.status === 'fulfilled' && suspicious.value?.length > 0) {
-          this.processThreats(suspicious.value, 'suspicious', cameraId, cameraName);
-        }
+  //       // Process suspicious behavior alerts
+  //       if (suspicious.status === 'fulfilled' && suspicious.value?.length > 0) {
+  //         this.processThreats(suspicious.value, 'suspicious', cameraId, cameraName);
+  //       }
 
-      } catch (error) {
-        console.error(`❌ Error polling threats for ${cameraName}:`, error);
-      }
-    };
+  //     } catch (error) {
+  //       console.error(`❌ Error polling threats for ${cameraName}:`, error);
+  //     }
+  //   };
 
-    // Poll every 5 seconds
-    const intervalId = setInterval(pollThreats, 5000);
-    this.pollingIntervals.set(cameraId, intervalId);
+  //   // Poll every 5 seconds
+  //   const intervalId = setInterval(pollThreats, 5000);
+  //   this.pollingIntervals.set(cameraId, intervalId);
     
-    console.log(`🔄 Started threat polling for ${cameraName}`);
-  }
+  //   console.log(`🔄 Started threat polling for ${cameraName}`);
+  // }
 
   // Stop polling for threats
   stopThreatPolling(cameraId) {
