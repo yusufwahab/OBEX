@@ -275,7 +275,9 @@ export default function CameraCard({
         />
 
         {/* Placeholder */}
-        <div
+        {streamStatus !== 'active' && (
+
+          <div
           id={`placeholder-${id}`}
           className="w-full h-full flex items-center justify-center bg-slate-800"
         >
@@ -297,6 +299,7 @@ export default function CameraCard({
             )}
           </div>
         </div>
+        )}
 
         {/* Zone Drawer Overlay */}
         <ZoneDrawer
