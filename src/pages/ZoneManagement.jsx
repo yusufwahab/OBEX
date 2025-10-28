@@ -68,10 +68,10 @@ const ZoneManagement = () => {
   ];
 
   const zoneStats = [
-    { label: 'Total Zones', value: zones.length, icon: MapPin, color: 'from-blue-500 to-cyan-500' },
-    { label: 'Active Cameras', value: zones.filter(z => z.camera).length, icon: Camera, color: 'from-green-500 to-emerald-500' },
-    { label: 'High Sensitivity', value: zones.filter(z => z.sensitivity === 'High').length, icon: AlertTriangle, color: 'from-red-500 to-pink-500' },
-    { label: 'System Status', value: 'Online', icon: CheckCircle, color: 'from-purple-500 to-indigo-500' },
+    { label: 'Total Zones', value: zones.length, icon: MapPin, color: 'from-blue-500 to-blue-600' },
+    { label: 'Active Cameras', value: zones.filter(z => z.camera).length, icon: Camera, color: 'from-blue-500 to-blue-600' },
+    { label: 'High Sensitivity', value: zones.filter(z => z.sensitivity === 'High').length, icon: AlertTriangle, color: 'from-blue-500 to-blue-600' },
+    { label: 'System Status', value: 'Online', icon: CheckCircle, color: 'from-blue-500 to-blue-600' },
   ];
 
   const pieData = [
@@ -133,7 +133,7 @@ const ZoneManagement = () => {
           <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/50 backdrop-blur-xl rounded-3xl border border-slate-600/30 shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-600/30">
               <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                <Shield className="w-6 h-6 text-cyan-400" />
+                <Shield className="w-6 h-6 text-blue-400" />
                 Security Zones
               </h2>
             </div>
@@ -153,7 +153,7 @@ const ZoneManagement = () => {
                     <tr key={zone.id} className="hover:bg-slate-700/30 transition-colors duration-200">
                       <td className="p-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                             <MapPin className="w-5 h-5 text-white" />
                           </div>
                           <div>
@@ -164,7 +164,7 @@ const ZoneManagement = () => {
                       </td>
                       <td className="p-6">
                         <div className="flex items-center gap-2">
-                          <Camera className="w-5 h-5 text-cyan-400" />
+                          <Camera className="w-5 h-5 text-blue-400" />
                           <span className="text-white">{zone.camera || 'Unassigned'}</span>
                         </div>
                       </td>
@@ -213,7 +213,7 @@ const ZoneManagement = () => {
             {/* Heatmap Chart */}
             <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/50 backdrop-blur-xl rounded-3xl p-6 border border-slate-600/30 shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <Activity className="w-6 h-6 text-cyan-400" />
+                <Activity className="w-6 h-6 text-blue-400" />
                 Zone Activity Heatmap
               </h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -250,7 +250,7 @@ const ZoneManagement = () => {
             {/* Sensitivity Distribution */}
             <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/50 backdrop-blur-xl rounded-3xl p-6 border border-slate-600/30 shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                <BarChart3 className="w-6 h-6 text-cyan-400" />
+                <BarChart3 className="w-6 h-6 text-blue-400" />
                 Sensitivity Distribution
               </h3>
               <ResponsiveContainer width="100%" height={300}>

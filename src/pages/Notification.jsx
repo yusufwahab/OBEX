@@ -96,6 +96,15 @@ const Notification = () => {
     threatWebSocket.setThreatCallback((threatData) => {
       setCurrentThreat(threatData);
       setShowThreatAlert(true);
+      
+      // Store the threat alert in notifications
+      addNotification({
+        type: 'threat',
+        level: threatData.severity || 'High',
+        title: threatData.title || 'Threat Detected',
+        message: threatData.description || 'A security threat has been detected',
+        priority: 'urgent'
+      });
     });
     
     // Connect WebSocket if not already connected
@@ -161,11 +170,11 @@ const Notification = () => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'threat': return 'from-red-500 to-pink-600';
-      case 'system': return 'from-cyan-500 to-blue-600';
-      case 'maintenance': return 'from-amber-500 to-orange-600';
-      case 'info': return 'from-emerald-500 to-green-600';
-      default: return 'from-slate-500 to-slate-600';
+      case 'threat': return 'from-blue-500 to-blue-600';
+      case 'system': return 'from-blue-500 to-blue-600';
+      case 'maintenance': return 'from-blue-500 to-blue-600';
+      case 'info': return 'from-blue-500 to-blue-600';
+      default: return 'from-blue-500 to-blue-600';
     }
   };
 
@@ -295,7 +304,7 @@ const Notification = () => {
                     <p className="text-3xl font-bold text-white mt-2">{notifications.length}</p>
                     <p className="text-xs text-gray-500 mt-1">All notifications</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-bell text-white text-xl"></i>
                   </div>
                 </div>
@@ -321,7 +330,7 @@ const Notification = () => {
                     <p className="text-3xl font-bold text-red-400 mt-2">{urgentCount}</p>
                     <p className="text-xs text-gray-500 mt-1">Critical alerts</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-exclamation-triangle text-white text-xl"></i>
                   </div>
                 </div>
@@ -336,77 +345,14 @@ const Notification = () => {
                     </p>
                     <p className="text-xs text-gray-500 mt-1">New today</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-calendar-day text-white text-xl"></i>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Backend Connection Status and System Info */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Backend Connection Status */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                    <i className="fa-solid fa-server text-cyan-400"></i>
-                    Backend Connection Status
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
-                    <span className="text-green-400 font-medium">Ready for Backend Integration</span>
-                  </div>
-                  <p className="text-gray-400 text-sm">
-                    The notification system is connected to the store and ready to receive real-time updates from your backend server.
-                    Use the "Simulate Backend" button to test the integration.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs rounded-full">
-                      WebSocket Ready
-                    </span>
-                    <span className="px-3 py-1 bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs rounded-full">
-                      HTTP Polling Ready
-                    </span>
-                    <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs rounded-full">
-                      SSE Ready
-                    </span>
-                    <span className="px-3 py-1 bg-green-500/20 border border-green-500/30 text-green-300 text-xs rounded-full">
-                      Store Connected
-                    </span>
-                  </div>
-                </div>
 
-                {/* Notification System Info */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                    <i className="fa-solid fa-info-circle text-blue-400"></i>
-                    System Information
-                  </h3>
-                  <div className="space-y-2 text-sm text-gray-300">
-                    <div className="flex justify-between">
-                      <span>Notification Types:</span>
-                      <span className="text-cyan-400">4 Supported</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Priority Levels:</span>
-                      <span className="text-amber-400">3 Levels</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Threat Levels:</span>
-                      <span className="text-red-400">3 Levels</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Persistence:</span>
-                      <span className="text-green-400">Enabled</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-400 text-sm">
-                    Notifications are now managed by the store with persistence enabled.
-                    Data is automatically saved and restored across sessions.
-                  </p>
-                </div>
-              </div>
-            </div>
 
             {/* Enhanced Filters and Search */}
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 shadow-xl mb-8">

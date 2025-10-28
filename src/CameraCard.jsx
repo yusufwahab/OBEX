@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useCameraStore } from './store/camera-store';
 import { useEventStore } from "./store/history-store";
-import { Camera, MapPin, Clock, Calendar, Trash2, Maximize2, Minimize2, Play, StopCircle, Brain, BrainCircuit, Target } from 'lucide-react';
+import { Camera, MapPin, Clock, Calendar, Trash2, Maximize2, Minimize2, Play, StopCircle, Brain, BrainCircuit, Target, AlertTriangle } from 'lucide-react';
 import { useNotificationStore } from "./store/notification-store";
 import { mlAnalysisAPI } from './services/api';
 import ThreatAlertModal from './components/ThreatAlertModal';
 import ZoneDrawer from './components/ZoneDrawer';
+import MLAlertsPanel from './components/MLAlertsPanel';
 import { threatWebSocket } from './services/websocket';
 import { alertWebSocket } from './services/alertWebSocket';
 import useAuthStore from './store/auth-store';
@@ -31,6 +32,7 @@ export default function CameraCard({
   const [mlAnalysisStatus, setMlAnalysisStatus] = useState('inactive');
   const [showZoneDrawer, setShowZoneDrawer] = useState(false);
   const [showThreatAlert, setShowThreatAlert] = useState(false);
+  const [showMLAlerts, setShowMLAlerts] = useState(false);
   const [currentThreat, setCurrentThreat] = useState(null);
   const videoContainerRef = useRef(null);
 
@@ -43,7 +45,7 @@ export default function CameraCard({
   // Use location_name or camera_name
   const displayName = location_name || camera_name || "Unknown Camera";
   const finalStreamUrl = rtsp_url || streamUrl;
- 
+
   // Debug logging for ML analysis issues
   useEffect(() => {
     if (streamStatus || mlAnalysisStatus !== 'inactive') {
@@ -253,10 +255,10 @@ export default function CameraCard({
     } catch (error) {
       console.error(`❌ ML analysis toggle failed for ${displayName}:`, error);
       console.error('Full error object:', error);
-     
+
       // Enhanced error handling with specific messages
       let errorMessage = 'Failed to toggle ML analysis';
-     
+
       if (error.userMessage) {
         errorMessage = error.userMessage;
       } else if (error.message?.includes('RTSP URL is required')) {
@@ -268,7 +270,7 @@ export default function CameraCard({
       } else if (error.message) {
         errorMessage = error.message;
       }
-     
+
       alert(`ML Analysis Error\n\nCamera: ${displayName}\nError: ${errorMessage}\n\nThis is likely a backend service issue. The ML analysis service may not be running or properly configured on the server.`);
       setMlAnalysisStatus('inactive');
     }
@@ -286,6 +288,16 @@ export default function CameraCard({
     } catch (error) {
       console.error(`❌ Failed to set detection zone for ${displayName}:`, error);
       alert('Failed to save detection zone');
+    }
+  };
+
+  const handleZonePolygonSet = async (zonePolygon) => {
+    try {
+      await mlAnalysisService.setDetectionZonePolygon(id, zonePolygon, displayName);
+      console.log(`✅ Detection zone polygon set for ${displayName}:`, zonePolygon);
+    } catch (error) {
+      console.error(`❌ Failed to set detection zone polygon for ${displayName}:`, error);
+      alert('Failed to save detection zone polygon');
     }
   };
 
@@ -339,8 +351,8 @@ export default function CameraCard({
             <Camera className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p className="text-sm font-medium">
               {streamStatus === 'connecting' ? 'Connecting to camera...' :
-               streamStatus === 'active' ? 'Loading video stream...' :
-               'Stream Inactive'}
+                streamStatus === 'active' ? 'Loading video stream...' :
+                  'Stream Inactive'}
             </p>
             {streamStatus === 'inactive' && (
               <p className="text-xs mt-2 opacity-75">Click "Stream" button to start</p>
@@ -358,7 +370,9 @@ export default function CameraCard({
         <ZoneDrawer
           cameraId={id}
           isActive={showZoneDrawer}
+          isFullscreen={isFullscreen}
           onZoneSet={handleZoneSet}
+          onZonePolygonSet={handleZonePolygonSet}
           onClose={() => setShowZoneDrawer(false)}
         />
 
@@ -401,21 +415,20 @@ export default function CameraCard({
               <span className="text-sm">{time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
             </div>
           </div>
-         
+
           {/* ML Analysis Status Indicator */}
           {streamStatus === 'active' && (
             <div className="flex items-center gap-2 text-gray-300">
-              <BrainCircuit className={`w-4 h-4 ${
-                mlAnalysisStatus === 'active' ? 'text-green-400' :
-                mlAnalysisStatus === 'starting' || mlAnalysisStatus === 'stopping' ? 'text-yellow-400' :
-                'text-gray-500'
-              }`} />
+              <BrainCircuit className={`w-4 h-4 ${mlAnalysisStatus === 'active' ? 'text-green-400' :
+                  mlAnalysisStatus === 'starting' || mlAnalysisStatus === 'stopping' ? 'text-yellow-400' :
+                    'text-gray-500'
+                }`} />
               <span className="text-sm">
                 ML Analysis: {
                   mlAnalysisStatus === 'active' ? 'Active' :
-                  mlAnalysisStatus === 'starting' ? 'Starting...' :
-                  mlAnalysisStatus === 'stopping' ? 'Stopping...' :
-                  'Ready'
+                    mlAnalysisStatus === 'starting' ? 'Starting...' :
+                      mlAnalysisStatus === 'stopping' ? 'Stopping...' :
+                        'Ready'
                 }
               </span>
             </div>
@@ -423,79 +436,93 @@ export default function CameraCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Stream Control Button */}
-          <button
-            onClick={handleStreamToggle}
-            disabled={!finalStreamUrl}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-              streamStatus === 'active'
-                ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white'
-                : streamStatus === 'connecting'
-                ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white cursor-not-allowed'
-                : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
-            } ${!finalStreamUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {streamStatus === 'active' ? (
-              <><StopCircle className="w-4 h-4" /> Stop</>
-            ) : streamStatus === 'connecting' ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Connecting</>
-            ) : (
-              <><Play className="w-4 h-4" /> Stream</>
-            )}
-          </button>
+        <div className="space-y-3">
+          {/* First Row - Stream and ML Controls */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Stream Control Button */}
+            <button
+              onClick={handleStreamToggle}
+              disabled={!finalStreamUrl}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${streamStatus === 'active'
+                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white'
+                  : streamStatus === 'connecting'
+                    ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white cursor-not-allowed'
+                    : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+                } ${!finalStreamUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {streamStatus === 'active' ? (
+                <><StopCircle className="w-4 h-4" /> Stop</>
+              ) : streamStatus === 'connecting' ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Connecting</>
+              ) : (
+                <><Play className="w-4 h-4" /> Stream</>
+              )}
+            </button>
 
-          <button
-            onClick={handleMlAnalysisToggle}
-            disabled={mlAnalysisStatus === 'starting' || mlAnalysisStatus === 'stopping'}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-              mlAnalysisStatus === 'active'
-                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
-                : mlAnalysisStatus === 'starting' || mlAnalysisStatus === 'stopping'
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white cursor-not-allowed opacity-75'
-                : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
-            } disabled:transform-none`}
-            title={mlAnalysisStatus === 'active' ? 'Stop ML analysis' : 'Start ML analysis'}
-          >
-            {mlAnalysisStatus === 'active' ? (
-              <><BrainCircuit className="w-4 h-4" /> ML Active</>
-            ) : mlAnalysisStatus === 'starting' ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Starting</>
-            ) : mlAnalysisStatus === 'stopping' ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Stopping</>
-            ) : (
-              <><Brain className="w-4 h-4" /> Start ML</>
-            )}
-          </button>
+            <button
+              onClick={handleMlAnalysisToggle}
+              disabled={mlAnalysisStatus === 'starting' || mlAnalysisStatus === 'stopping'}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${mlAnalysisStatus === 'active'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+                  : mlAnalysisStatus === 'starting' || mlAnalysisStatus === 'stopping'
+                    ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white cursor-not-allowed opacity-75'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
+                } disabled:transform-none`}
+              title={mlAnalysisStatus === 'active' ? 'Stop ML analysis' : 'Start ML analysis'}
+            >
+              {mlAnalysisStatus === 'active' ? (
+                <><BrainCircuit className="w-4 h-4" /> ML Active</>
+              ) : mlAnalysisStatus === 'starting' ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Starting</>
+              ) : mlAnalysisStatus === 'stopping' ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Stopping</>
+              ) : (
+                <><Brain className="w-4 h-4" /> Start ML</>
+              )}
+            </button>
+          </div>
 
-          <button
-            onClick={handleZoneDrawing}
-            disabled={streamStatus !== 'active'}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-              streamStatus === 'active'
-                ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
-                : 'bg-gradient-to-r from-gray-400 to-gray-500 text-gray-300 cursor-not-allowed opacity-50'
-            } disabled:transform-none`}
-            title={streamStatus !== 'active' ? 'Start video stream first to set detection zone' : 'Set detection zone for ML analysis'}
-          >
-            <Target className="w-4 h-4" /> Set Zone
-          </button>
+          {/* Second Row - Zone, Alerts, and Delete */}
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={handleZoneDrawing}
+              disabled={streamStatus !== 'active'}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${streamStatus === 'active'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
+                  : 'bg-gradient-to-r from-gray-400 to-gray-500 text-gray-300 cursor-not-allowed opacity-50'
+                } disabled:transform-none`}
+              title={streamStatus !== 'active' ? 'Start video stream first to set detection zone' : 'Set detection zone for ML analysis'}
+            >
+              <Target className="w-4 h-4" /> Set Zone
+            </button>
 
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDeleting ? (
-              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Deleting</>
-            ) : (
-              <><Trash2 className="w-4 h-4" /> Delete</>
-            )}
-          </button>
-        </div>
+            <button
+              onClick={() => setShowMLAlerts(true)}
+              disabled={mlAnalysisStatus !== 'active'}
+              className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${mlAnalysisStatus === 'active'
+                  ? 'bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white'
+                  : 'bg-gradient-to-r from-gray-400 to-gray-500 text-gray-300 cursor-not-allowed opacity-50'
+                } disabled:transform-none`}
+              title={mlAnalysisStatus !== 'active' ? 'Start ML analysis first to view alerts' : 'View ML analysis alerts and videos'}
+            >
+              <AlertTriangle className="w-4 h-4" /> ML Alerts
+            </button>
 
-        {/* Test Button (Development Only) */}
-        {/* {import.meta.env.DEV && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Deleting</>
+              ) : (
+                <><Trash2 className="w-4 h-4" /> Delete</>
+              )}
+            </button>
+          </div>
+
+          {/* Test Button (Development Only) */}
+          {/* {import.meta.env.DEV && (
           <button
             onClick={simulateThreat}
             className="w-full mt-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300"
@@ -503,6 +530,7 @@ export default function CameraCard({
             🧪 Simulate Threat
           </button>
         )} */}
+        </div>
       </div>
 
       {/* Threat Alert Modal */}
@@ -510,6 +538,14 @@ export default function CameraCard({
         isOpen={showThreatAlert}
         onClose={handleCloseThreatAlert}
         alertData={currentThreat}
+      />
+
+      {/* ML Alerts Panel */}
+      <MLAlertsPanel
+        cameraId={id}
+        cameraName={displayName}
+        isOpen={showMLAlerts}
+        onClose={() => setShowMLAlerts(false)}
       />
     </section>
   );

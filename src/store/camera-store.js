@@ -375,6 +375,263 @@ export const useCameraStore = create((set, get) => ({
       console.error("Error getting RTSP URL:", error);
       throw error;
     }
+  },
+
+  // ML Analysis endpoints
+  setDetectionZone: async (cameraId, zoneCoords) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/zone`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ zone_coords: zoneCoords })
+      });
+
+      if (!response.ok) throw new Error(`Failed to set detection zone: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error setting detection zone:", error);
+      throw error;
+    }
+  },
+
+  getCameraDetections: async (cameraId) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/detections`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get detections: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting detections:", error);
+      throw error;
+    }
+  },
+
+  getIntrusionAlerts: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/intrusion-alerts?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get intrusion alerts: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting intrusion alerts:", error);
+      throw error;
+    }
+  },
+
+  getLoiteringAlerts: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/loitering-alerts?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get loitering alerts: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting loitering alerts:", error);
+      throw error;
+    }
+  },
+
+  getTheftAlerts: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/theft-alerts?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get theft alerts: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting theft alerts:", error);
+      throw error;
+    }
+  },
+
+  getSuspiciousBehaviorAlerts: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/suspicious-behavior?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get suspicious behavior alerts: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting suspicious behavior alerts:", error);
+      throw error;
+    }
+  },
+
+  getCameraMLStatus: async (cameraId) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/status`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get ML status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting ML status:", error);
+      throw error;
+    }
+  },
+
+  getLoiteringVideos: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/loitering-videos?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get loitering videos: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting loitering videos:", error);
+      throw error;
+    }
+  },
+
+  getIntrusionVideos: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/intrusion-videos?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get intrusion videos: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting intrusion videos:", error);
+      throw error;
+    }
+  },
+
+  getWeaponVideos: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/weapon-videos?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get weapon videos: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting weapon videos:", error);
+      throw error;
+    }
+  },
+
+  getSuspiciousVideos: async (cameraId, limit = 50) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/cameras/${cameraId}/ml-analysis/suspicious-videos?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get suspicious videos: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting suspicious videos:", error);
+      throw error;
+    }
+  },
+
+  getAllLoiteringVideos: async (limit = 100) => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/ml-analysis/loitering-videos-all?limit=${limit}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get all loitering videos: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting all loitering videos:", error);
+      throw error;
+    }
+  },
+
+  getMLCameras: async () => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/ml-analysis/cameras`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get ML cameras: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting ML cameras:", error);
+      throw error;
+    }
+  },
+
+  getMLModelStatus: async () => {
+    try {
+      const token = localStorage.getItem("primusLiteToken");
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${BASE_URL}/api/ml-analysis/ml-analysis/model-status`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error(`Failed to get ML model status: ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      console.error("Error getting ML model status:", error);
+      throw error;
+    }
   }
 }));
 

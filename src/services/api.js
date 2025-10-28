@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // ✅ Vite-compatible + No trailing space + Safe fallback
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-  ? import.meta.env.VITE_API_BASE_URL.trim() 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ? import.meta.env.VITE_API_BASE_URL.trim()
   : 'https://obex-backend-1.onrender.com/api'; // ← NO TRAILING SPACE
 
 console.log('✅ Using API Base URL:', API_BASE_URL);
@@ -155,7 +155,7 @@ export const usersAPI = {
 };
 
 
-    
+
 
 
 
@@ -215,49 +215,244 @@ export const cameraAPI = {
 // ML ANALYSIS API
 // ======================
 export const mlAnalysisAPI = {
-  start: async (cameraId, payload = { detection_enabled: true, confidence_threshold: 1, overlap_threshold: 1 }) => {
-    const response = await api.post(`/ml-analysis/cameras/${cameraId}/ml-analysis/start`, payload);
-    return response.data;
+  // Start ML analysis with detection enabled
+  start: async (cameraId, payload = {
+    detection_enabled: true,
+    confidence_threshold: 1,
+    overlap_threshold: 1,
+    zone_coords: [],
+    zone_polygon: []
+  }) => {
+    try {
+      const response = await api.post(`/ml-analysis/cameras/${cameraId}/ml-analysis/start`, payload);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        error.userMessage = 'ML analysis service is currently unavailable. The backend ML service may not be running or configured properly.';
+      }
+      throw error;
+    }
   },
 
+  // Stop ML analysis
   stop: async (cameraId) => {
-    const response = await api.delete(`/ml-analysis/cameras/${cameraId}/ml-analysis/stop`);
-    return response.data;
+    try {
+      const response = await api.delete(`/ml-analysis/cameras/${cameraId}/ml-analysis/stop`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        error.userMessage = 'Failed to stop ML analysis. The service may already be stopped.';
+      }
+      throw error;
+    }
   },
 
+  // Set detection zone (legacy)
   setZone: async (cameraId, zoneCoords) => {
-    const response = await api.put(`/ml-analysis/cameras/${cameraId}/ml-analysis/zone`, { zone_coords: zoneCoords });
-    return response.data;
+    try {
+      const response = await api.put(`/ml-analysis/cameras/${cameraId}/ml-analysis/zone`, { zone_coords: zoneCoords });
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        error.userMessage = 'Failed to set detection zone. Please try again.';
+      }
+      throw error;
+    }
   },
 
+  // Set detection zone polygon (new preferred method)
+  setZonePolygon: async (cameraId, zonePolygon) => {
+    try {
+      const response = await api.put(`/ml-analysis/cameras/${cameraId}/ml-analysis/zone_polygon`, {
+        zone_polygon: zonePolygon
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        error.userMessage = 'Failed to set detection zone polygon. Please try again.';
+      }
+      throw error;
+    }
+  },
+
+  // Get current detections
   getDetections: async (cameraId) => {
-    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/detections`);
-    return response.data;
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/detections`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        error.userMessage = 'Failed to retrieve detections. ML analysis may not be running.';
+      }
+      throw error;
+    }
   },
 
+  // Get intrusion alerts
   getIntrusionAlerts: async (cameraId, limit = 50) => {
-    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/intrusion-alerts?limit=${limit}`);
-    return response.data;
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/intrusion-alerts?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get intrusion alerts for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
   },
 
+  // Get loitering alerts
   getLoiteringAlerts: async (cameraId, limit = 50) => {
-    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/loitering-alerts?limit=${limit}`);
-    return response.data;
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/loitering-alerts?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get loitering alerts for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
   },
 
+  // Get theft alerts
   getTheftAlerts: async (cameraId, limit = 50) => {
-    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/theft-alerts?limit=${limit}`);
-    return response.data;
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/theft-alerts?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get theft alerts for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
   },
 
+  // Get suspicious behavior alerts
   getSuspiciousBehaviorAlerts: async (cameraId, limit = 50) => {
-    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/suspicious-behavior?limit=${limit}`);
-    return response.data;
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/suspicious-behavior?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get suspicious behavior alerts for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
   },
 
+  // Get ML analysis status
   getStatus: async (cameraId) => {
-    const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/status`);
-    return response.data;
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/status`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        error.userMessage = 'Failed to get ML analysis status. Service may not be running.';
+      }
+      throw error;
+    }
+  },
+
+  // Get loitering videos for specific camera
+  getLoiteringVideos: async (cameraId, limit = 50) => {
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/loitering-videos?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get loitering videos for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Get intrusion videos for specific camera
+  getIntrusionVideos: async (cameraId, limit = 50) => {
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/intrusion-videos?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get intrusion videos for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Get weapon detection videos for specific camera
+  getWeaponVideos: async (cameraId, limit = 50) => {
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/weapon-videos?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get weapon videos for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Get suspicious object videos for specific camera
+  getSuspiciousVideos: async (cameraId, limit = 50) => {
+    try {
+      const response = await api.get(`/ml-analysis/cameras/${cameraId}/ml-analysis/suspicious-videos?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get suspicious videos for camera ${cameraId}:`, error.message);
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Get all loitering videos across all cameras for user
+  getAllLoiteringVideos: async (limit = 100) => {
+    try {
+      const response = await api.get(`/ml-analysis/ml-analysis/loitering-videos-all?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get all loitering videos:`, error.message);
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Get all cameras with active ML analysis for user
+  getMLCameras: async () => {
+    try {
+      const response = await api.get(`/ml-analysis/ml-analysis/cameras`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get ML cameras:`, error.message);
+        return [];
+      }
+      throw error;
+    }
+  },
+
+  // Get ML model status and configuration
+  getModelStatus: async () => {
+    try {
+      const response = await api.get(`/ml-analysis/ml-analysis/model-status`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 500) {
+        console.warn(`Failed to get ML model status:`, error.message);
+        return null;
+      }
+      throw error;
+    }
   },
 };
 

@@ -147,7 +147,7 @@ export default function History() {
                     <p className="text-3xl font-bold text-white mt-2">{events.length}</p>
                     <p className="text-xs text-gray-500 mt-1">All time</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-calendar text-white text-xl"></i>
                   </div>
                 </div>
@@ -162,7 +162,7 @@ export default function History() {
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Critical alerts</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-exclamation-triangle text-white text-xl"></i>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export default function History() {
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Warning alerts</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-exclamation-circle text-white text-xl"></i>
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export default function History() {
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Info alerts</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                     <i className="fa-solid fa-info-circle text-white text-xl"></i>
                   </div>
                 </div>
@@ -274,7 +274,7 @@ export default function History() {
                     {/* Event Details */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <i className="fa-solid fa-video text-cyan-400 text-lg"></i>
+                        <i className="fa-solid fa-video text-blue-400 text-lg"></i>
                         <h3 className="text-lg font-bold text-white truncate">
                           {String(event.camera_name)}
                         </h3>

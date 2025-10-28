@@ -1,7 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { useNotificationStore } from '../store/notification-store';
 
 const ThreatAlertModal = ({ isOpen, onClose, alertData }) => {
+  const { addNotification } = useNotificationStore();
+  
+  useEffect(() => {
+    if (isOpen && alertData) {
+      // Store the alert in notifications
+      addNotification({
+        type: 'threat',
+        level: alertData.severity || 'High',
+        title: alertData.title || 'Threat Detected',
+        message: alertData.description || 'A security threat has been detected',
+        priority: 'urgent'
+      });
+      
+      // Play danger sound
+      const audio = new Audio('./AlertSound.mp3');
+      audio.play().catch(e => console.log('Audio play failed:', e));
+    }
+  }, [isOpen, alertData, addNotification]);
+  
   if (!isOpen || !alertData) return null;
 
   const getThreatIcon = (type) => {
@@ -17,10 +37,10 @@ const ThreatAlertModal = ({ isOpen, onClose, alertData }) => {
 
   const getThreatColor = (severity) => {
     switch (severity) {
-      case 'High': return 'from-red-600 to-pink-600';
-      case 'Medium': return 'from-amber-500 to-orange-500';
-      case 'Low': return 'from-yellow-500 to-amber-500';
-      default: return 'from-red-600 to-pink-600';
+      case 'High': return 'from-red-600 to-red-700';
+      case 'Medium': return 'from-red-500 to-red-600';
+      case 'Low': return 'from-red-400 to-red-500';
+      default: return 'from-red-600 to-red-700';
     }
   };
 
@@ -29,7 +49,7 @@ const ThreatAlertModal = ({ isOpen, onClose, alertData }) => {
       <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 max-w-md w-full mx-4 border border-red-500/30 shadow-2xl">
         {/* Blinking Alert Icon */}
         <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center animate-pulse shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-700 rounded-full flex items-center justify-center animate-pulse shadow-lg">
             <AlertTriangle className="w-6 h-6 text-white animate-bounce" />
           </div>
         </div>
@@ -48,9 +68,15 @@ const ThreatAlertModal = ({ isOpen, onClose, alertData }) => {
             {getThreatIcon(alertData.type)}
           </div>
           
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold text-white mb-2 animate-pulse" style={{animation: 'dangerPop 1s ease-in-out infinite'}}>
             THREAT DETECTED
           </h2>
+          <style jsx>{`
+            @keyframes dangerPop {
+              0%, 100% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.1); opacity: 0.8; }
+            }
+          `}</style>
           
           <div className={`inline-block px-4 py-2 rounded-full text-white font-semibold mb-4 bg-gradient-to-r ${getThreatColor(alertData.severity)}`}>
             {alertData.severity} Priority
@@ -87,7 +113,7 @@ const ThreatAlertModal = ({ isOpen, onClose, alertData }) => {
           
           <button
             onClick={onClose}
-            className="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             Acknowledge Alert
           </button>

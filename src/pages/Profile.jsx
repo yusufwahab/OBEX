@@ -21,6 +21,7 @@ const Profile = () => {
     bio: 'Experienced security professional with expertise in surveillance systems, access control, and incident response. Dedicated to maintaining the highest standards of security and safety.',
     skills: ['Security Management', 'CCTV Systems', 'Access Control', 'Incident Response', 'Risk Assessment', 'Emergency Planning']
   });
+  const [loading, setLoading] = useState(true);
 
   const [isEditing, setIsEditing] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
@@ -29,13 +30,30 @@ const Profile = () => {
     setActive('profile');
     const fetchProfile = async () => {
       try {
+        setLoading(true);
         const result = await usersAPI.getProfile();
+        console.log('📋 Profile API Response:', result);
+        
+        // Map API response to profile state
+        const userData = result.data || result;
         setProfile(prev => ({
           ...prev,
-          ...result,
+          full_name: userData.full_name || userData.firstName || userData.name || '',
+          email: userData.email || '',
+          phone: userData.phone || userData.phoneNumber || '',
+          role: userData.role || 'Security Administrator',
+          department: userData.department || 'Security Operations',
+          location: userData.location || 'Lagos, Nigeria',
+          joinDate: userData.created_at ? new Date(userData.created_at).toISOString().split('T')[0] : '2023-01-15',
+          lastLogin: userData.last_login ? new Date(userData.last_login).toLocaleString() : new Date().toLocaleString(),
+          status: userData.is_active ? 'Active' : 'Inactive',
+          bio: userData.bio || prev.bio
         }));
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('❌ Error fetching profile:', error);
+        // Keep default values if API fails
+      } finally {
+        setLoading(false);
       }
     };
     fetchProfile();
@@ -74,7 +92,21 @@ const Profile = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(6,182,212,0.1),transparent_50%)] opacity-60"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(59,130,246,0.1),transparent_50%)] opacity-60"></div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
+                <span className="text-white text-lg font-semibold">Loading profile...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {!loading && (
+            <>
           {/* Enhanced Header Section */}
           <div className="mb-12">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
@@ -186,7 +218,7 @@ const Profile = () => {
                     }}
                   />
 
-                  <h2 className="text-3xl font-bold text-white mt-6 mb-2">{profile.name}</h2>
+                  <h2 className="text-3xl font-bold text-white mt-6 mb-2">{profile.full_name || 'User Name'}</h2>
                   <p className="text-cyan-300 font-semibold text-lg mb-4">{profile.role}</p>
                   <div
                     className={`inline-block px-6 py-3 bg-gradient-to-r ${getStatusColor(
@@ -263,8 +295,8 @@ const Profile = () => {
                           type={type}
                           value={profile[key]}
                           onChange={(e) => setProfile({ ...profile, [key]: e.target.value })}
-                          disabled={["full_name", "email", "phone"].includes(key) || !isEditing}
-                          readOnly={["full_name", "email", "phone"].includes(key)}
+                          disabled={!isEditing}
+                          readOnly={false}
                           className={`w-full pl-14 pr-5 py-4 bg-gradient-to-r from-slate-700/80 to-slate-800/80 text-white border border-slate-600/50 focus:border-cyan-400/60 focus:ring-4 focus:ring-cyan-400/20 rounded-2xl focus:ring-cyan-400/20 transition-all duration-300 backdrop-blur-sm text-lg ${disabled || !isEditing ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-500/60 hover:shadow-lg hover:shadow-slate-500/20'
                             }`}
                         />
@@ -307,6 +339,8 @@ const Profile = () => {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
     </>
